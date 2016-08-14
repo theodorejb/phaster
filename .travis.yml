@@ -1,0 +1,17 @@
+language: php
+sudo: required
+dist: trusty
+group: edge
+
+php:
+  - 7.0
+  - 7.1
+  - hhvm-3.12
+  - hhvm-nightly
+
+install:
+  - composer install
+
+matrix:
+  allow_failures:
+    - php: hhvm-nightly
