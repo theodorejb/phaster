@@ -12,6 +12,9 @@ php:
 install:
   - composer install
 
+before_script:
+  - if [[ $TRAVIS_PHP_VERSION = hhvm-3.12 || $TRAVIS_PHP_VERSION = hhvm-nightly ]]; then cat hhvm.php.ini >> /etc/hhvm/php.ini; fi
+
 matrix:
   allow_failures:
     - php: hhvm-nightly
