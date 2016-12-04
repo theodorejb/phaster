@@ -163,6 +163,15 @@ abstract class Entities
         return $entities[0];
     }
 
+    public function getEntitiesByIds(array $ids): array
+    {
+        $result = $this->db->selectFrom($this->getBaseSelect())
+            ->where([$this->getIdColumn() => $ids])
+            ->query();
+
+        return $this->rowsToJson($result->getIterator());
+    }
+
     public function getEntities(array $filter = [], array $sort = [], int $page = null, int $pageSize = 0): array
     {
         $filter = $this->processFilter($filter);
