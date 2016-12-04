@@ -9,32 +9,31 @@ use Teapot\{HttpException, StatusCode};
 function search_route($class)
 {
     return function (ServerRequestInterface $request, ResponseInterface $response) use ($class): ResponseInterface {
-        $params = [
-            'q' => [],
-            'sort' => [],
-            'page' => null,
-            'pageSize' => null,
-        ];
+        $params = new \stdClass();
+        $params->q = [];
+        $params->sort = [];
+        $params->offset = null;
+        $params->limit = null;
 
         foreach ($request->getQueryParams() as $param => $value) {
-            if (array_key_exists($param, $params)) {
-                $params[$param] = $value;
+            if (property_exists($params, $param)) {
+                $params->$param = $value;
             } else {
                 throw new HttpException("Unrecognized parameter '{$param}'", StatusCode::BAD_REQUEST);
             }
         }
 
-        if ($params['page'] === null && $params['pageSize'] !== null) {
-            $params['page'] = 1;
-        } elseif ($params['pageSize'] === null && $params['page'] !== null) {
-            $params['pageSize'] = 100;
-        } elseif ($params['pageSize'] === null) {
-            $params['pageSize'] = 0;
+        if ($params->offset === null && $params->limit !== null) {
+            $params->offset = 0;
+        } elseif ($params->limit === null && $params->offset !== null) {
+            $params->limit = 100;
+        } elseif ($params->limit === null) {
+            $params->limit = 0;
         }
 
         /** @var Entities $instance */
         $instance = new $class();
-        $entities = $instance->getEntities($params['q'], $params['sort'], $params['page'], $params['pageSize']);
+        $entities = $instance->getEntities($params->q, $params->sort, $params->offset, $params->limit);
         $response->getBody()->write(json_encode(['data' => $entities]));
         return $response;
     };

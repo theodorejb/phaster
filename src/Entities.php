@@ -143,7 +143,7 @@ abstract class Entities
         $duplicateError = $this->getDuplicateError();
 
         if ($duplicateError !== '' && $e->getSqlState() === '23000') {
-           return new HttpException($duplicateError, StatusCode::CONFLICT, $e);
+            return new HttpException($duplicateError, StatusCode::CONFLICT, $e);
         } else {
             return $e;
         }
@@ -172,7 +172,7 @@ abstract class Entities
         return $this->rowsToJson($result->getIterator());
     }
 
-    public function getEntities(array $filter = [], array $sort = [], int $page = null, int $pageSize = 0): array
+    public function getEntities(array $filter = [], array $sort = [], int $offset = null, int $limit = 0): array
     {
         $filter = $this->processFilter($filter);
         $selectMap = $this->getSelectMap();
@@ -185,8 +185,8 @@ abstract class Entities
             ->where(self::propertiesToColumns($selectMap, $filter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort));
 
-        if ($page !== null) {
-            $select->paginate($page, $pageSize);
+        if ($offset !== null) {
+            $select->offset($offset, $limit);
         }
 
         return $this->rowsToJson($select->query()->getIterator());

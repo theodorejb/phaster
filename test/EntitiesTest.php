@@ -2,9 +2,10 @@
 
 namespace Phaster;
 
+use PHPUnit\Framework\TestCase;
 use Teapot\HttpException;
 
-class EntitiesTest extends \PHPUnit_Framework_TestCase
+class EntitiesTest extends TestCase
 {
     private $propertyMap = [
         'name' => 'UserName',
