@@ -93,7 +93,7 @@ abstract class Entities
         return $this->db->deleteFrom($this->getTableName(), [$this->getIdColumn() => $ids]);
     }
 
-    public function updateById(int $id, array $data): int
+    public function updateById($id, array $data): int
     {
         $row = self::propertiesToColumns($this->getMap(), $this->processValues($data, [$id]), true);
 
@@ -149,7 +149,7 @@ abstract class Entities
         }
     }
 
-    public function getEntityById(int $id)
+    public function getEntityById($id)
     {
         $result = $this->db->selectFrom($this->getBaseSelect())
             ->where([$this->getIdColumn() => $id])->query();
