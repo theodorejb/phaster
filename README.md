@@ -72,25 +72,25 @@ class Users extends Entities
 
 ```php
 <?php
+
 use My\DatabaseFactory;
-use Phaster\{Entities, EntitiesFactory, RouteHandler};
+use Phaster\{Entities, EntitiesFactory};
 
 class MyEntitiesFactory implements EntitiesFactory
 {
-    private $dbName;
-
-    public function __construct(string $dbName)
-    {
-        $this->dbName = $dbName;
-    }
-
     public function createEntities($class): Entities
     {
-        return new $class(DatabaseFactory::getDb($this->dbName));
+        return new $class(DatabaseFactory::getDb());
     }
 }
+```
 
-$phaster = new RouteHandler(new MyEntitiesFactory('MainDB'));
+```php
+<?php
+
+use Phaster\RouteHandler;
+
+$phaster = new RouteHandler(new MyEntitiesFactory());
 
 $app->get('/users', $phaster->search(Users::class));
 ```
