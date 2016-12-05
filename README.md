@@ -71,14 +71,28 @@ class Users extends Entities
 ```
 
 ```php
+<?php
 use My\DatabaseFactory;
-use Phaster\RouteHandler;
+use Phaster\{Entities, EntitiesFactory, RouteHandler};
 
-$phaster = new RouteHandler(function ($class) {
-    return new $class(DatabaseFactory::getDb('MainDB'));
-});
+class MyEntitiesFactory implements EntitiesFactory
+{
+    private $dbName;
 
-$app->get('/users', $phaster->searchRoute(Users::class));
+    public function __construct(string $dbName)
+    {
+        $this->dbName = $dbName;
+    }
+
+    public function createEntities($class): Entities
+    {
+        return new $class(DatabaseFactory::getDb($this->dbName));
+    }
+}
+
+$phaster = new RouteHandler(new MyEntitiesFactory('MainDB'));
+
+$app->get('/users', $phaster->search(Users::class));
 ```
 
 ## Author

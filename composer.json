@@ -18,7 +18,6 @@
         "phpunit/phpunit": "^5.7"
     },
     "autoload": {
-        "psr-4": {"Phaster\\": "src/"},
-        "files": ["src/RouteHandlers.php"]
+        "psr-4": {"Phaster\\": "src/"}
     }
 }
