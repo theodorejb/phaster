@@ -227,7 +227,11 @@ abstract class Entities
 
             if (is_array($newMap)) {
                 if (!is_array($value)) {
-                    throw new HttpException("Expected {$contextProp} property to be an object, got " . gettype($value), StatusCode::BAD_REQUEST);
+                    if ($buildColumns) {
+                        throw new HttpException("Expected {$contextProp} property to be an object, got " . gettype($value), StatusCode::BAD_REQUEST);
+                    } else {
+                        continue;
+                    }
                 }
 
                 self::propsToColumns($newMap, $value, $allowExtraProperties, $buildColumns, $contextProp, $columns);

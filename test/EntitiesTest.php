@@ -62,6 +62,23 @@ class EntitiesTest extends TestCase
         $sortExpectation = ['ClientName' => 'asc', 'isDisabled' => 'desc'];
         $this->assertSame($sortExpectation, Entities::propertiesToColumns($this->propertyMap, $sort));
         $this->assertSame([], Entities::propertiesToColumns($this->propertyMap, []));
+
+        $binaryMap = [
+            'prop' => 'SomeColumn',
+            'binaryProp' => 'BinaryColumn',
+        ];
+
+        $binaryObj = [
+            'prop' => 'val',
+            'binaryProp' => ['abc123', 1],
+        ];
+
+        $binaryExpectation = [
+            'SomeColumn' => 'val',
+            'BinaryColumn' => ['abc123', 1],
+        ];
+
+        $this->assertSame($binaryExpectation, Entities::propertiesToColumns($binaryMap, $binaryObj, true));
     }
 
     public function testInvalidMap()
@@ -120,6 +137,14 @@ class EntitiesTest extends TestCase
             $this->fail('Failed to throw exception for null property');
         } catch (HttpException $e) {
             $this->assertSame("Expected client property to be an object, got NULL", $e->getMessage());
+        }
+
+        try {
+            $badData = [ 'client' => 'some string' ];
+            Entities::propertiesToColumns($this->propertyMap, $badData);
+            $this->fail('Failed to throw exception for invalid string property');
+        } catch (\Exception $e) {
+            $this->assertSame("Expected client property to be an object, got string", $e->getMessage());
         }
     }
 
