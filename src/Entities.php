@@ -73,6 +73,15 @@ abstract class Entities
     }
 
     /**
+     * Allows default values to be specified for mapped properties.
+     * These defaults are only used when adding entities.
+     */
+    protected function getDefaultValues(): array
+    {
+        return [];
+    }
+
+    /**
      * Can modify the filter or throw an exception if it is invalid
      */
     protected function processFilter(array $filter): array
@@ -81,7 +90,8 @@ abstract class Entities
     }
 
     /**
-     * Perform any validations/alterations to a set of properties/values to insert/update
+     * Perform any validations/alterations to a set of properties/values to insert/update.
+     * When adding entities, default values are merged prior to calling this method.
      */
     protected function processValues(array $data, array $ids): array
     {
@@ -128,6 +138,7 @@ abstract class Entities
         }
 
         $rows = array_map(function ($data) {
+            $data = array_replace_recursive($this->getDefaultValues(), $data);
             return self::propertiesToColumns($this->getMap(), $this->processValues($data, []), true);
         }, $entities);
 
