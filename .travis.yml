@@ -15,6 +15,9 @@ before_install:
 install:
   - composer install
 
+script:
+  - vendor/bin/phpunit
+
 matrix:
   allow_failures:
     - php: hhvm-3.12
