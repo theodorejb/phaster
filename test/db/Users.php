@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phaster;
+
+class Users extends Entities
+{
+    protected function getIdColumn(): string
+    {
+        return 'user_id';
+    }
+
+    protected function getMap(): array
+    {
+        return [
+            'name' => 'name',
+            'birthday' => 'dob',
+            'weight' => 'weight',
+            'isDisabled' => 'isDisabled',
+        ];
+    }
+
+    protected function getDefaultValues(): array
+    {
+        return [
+            'isDisabled' => false,
+        ];
+    }
+
+    protected function rowsToJson(\Generator $rows): array
+    {
+        $users = [];
+
+        foreach ($rows as $row) {
+            $users[] = [
+                'id' => $row['user_id'],
+                'name' => $row['name'],
+                'birthday' => (new \DateTime($row['dob']))->format('Y-m-d'),
+                'weight' => $row['weight'],
+                'isDisabled' => (bool)$row['isDisabled'],
+            ];
+        }
+
+        return $users;
+    }
+
+    protected function getDuplicateError(): string
+    {
+        return 'A user with this name already exists';
+    }
+}
