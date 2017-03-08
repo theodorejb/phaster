@@ -49,4 +49,9 @@ class Users extends Entities
     {
         return 'A user with this name already exists';
     }
+
+    protected function getConstraintError(): string
+    {
+        return 'Failed to delete user: it still has things referencing it';
+    }
 }

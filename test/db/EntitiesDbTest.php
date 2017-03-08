@@ -14,23 +14,26 @@ class EntitiesDbTest extends TestCase
         TestDbConnector::deleteTestTables();
     }
 
-    /**
-     * Returns an array of Entities instances.
-     */
-    public function entitiesProvider(): array
+    public function dbProvider(): array
     {
         $config = TestDbConnector::getConfig();
         $databases = [];
 
         if ($config['testWith']['mysql']) {
-            $databases[] = new Mysql(TestDbConnector::getMysqlConn());
+            $databases[] = [new Mysql(TestDbConnector::getMysqlConn())];
         }
 
         if ($config['testWith']['sqlsrv']) {
-            $databases[] = new SqlServer(TestDbConnector::getSqlsrvConn());
+            $databases[] = [new SqlServer(TestDbConnector::getSqlsrvConn())];
         }
 
-        return array_map(function (PeachySql $db) { return [new Users($db)]; }, $databases);
+        return $databases;
+    }
+
+    public function entitiesProvider(): array
+    {
+        $mapper = function (array $db) { return [new Users($db[0])]; };
+        return array_map($mapper, $this->dbProvider());
     }
 
     /**
@@ -154,7 +157,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testProperException(Entities $entities)
+    public function testGetDuplicateError(Entities $entities)
     {
         $users = [
             [
@@ -174,6 +177,29 @@ class EntitiesDbTest extends TestCase
             throw new \Exception('Failed to throw duplicate name exception');
         } catch (\Exception $e) {
             $this->assertSame('A user with this name already exists', $e->getMessage());
+        }
+    }
+
+    /**
+     * @dataProvider dbProvider
+     */
+    public function testGetConstraintError(PeachySql $db)
+    {
+        $user = [
+            'name' => 'Some Name',
+            'birthday' => '2001-06-17',
+            'weight' => 156,
+        ];
+
+        $entities = new Users($db);
+        $id = $entities->addEntities([$user])[0];
+        $db->insertRow('UserThings', ['user_id' => $id]);
+
+        try {
+            $entities->deleteByIds([$id]);
+            throw new \Exception('Failed to throw constraint violation exception');
+        } catch (\Exception $e) {
+            $this->assertSame('Failed to delete user: it still has things referencing it', $e->getMessage());
         }
     }
 

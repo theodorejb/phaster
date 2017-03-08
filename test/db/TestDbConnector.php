@@ -69,7 +69,7 @@ class TestDbConnector
     private static function createSqlServerTestTable($conn)
     {
         $sql = 'CREATE TABLE Users (
-                    user_id INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+                    user_id INT PRIMARY KEY IDENTITY NOT NULL,
                     name VARCHAR(50) NOT NULL UNIQUE,
                     dob DATE NOT NULL,
                     weight FLOAT NOT NULL,
@@ -78,6 +78,15 @@ class TestDbConnector
 
         if (!sqlsrv_query($conn, $sql)) {
             throw new Exception('Failed to create SQL Server test table: ' . print_r(sqlsrv_errors(), true));
+        }
+
+        $sql = 'CREATE TABLE UserThings (
+                    thing_id INT PRIMARY KEY IDENTITY NOT NULL,
+                    user_id INT NOT NULL FOREIGN KEY REFERENCES Users(user_id)
+                );';
+
+        if (!sqlsrv_query($conn, $sql)) {
+            throw new Exception('Failed to create SQL Server UserThings table: ' . print_r(sqlsrv_errors(), true));
         }
     }
 
@@ -94,21 +103,36 @@ class TestDbConnector
         if (!$conn->query($sql)) {
             throw new Exception('Failed to create MySQL test table: ' . print_r($conn->error_list, true));
         }
+
+        $sql = 'CREATE TABLE UserThings (
+                    thing_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                    user_id INT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                );';
+
+        if (!$conn->query($sql)) {
+            throw new Exception('Failed to create MySQL UserThings table: ' . print_r($conn->error_list, true));
+        }
     }
 
     public static function deleteTestTables()
     {
-        $sql = 'DROP TABLE Users';
+        $sql = [
+            'DROP TABLE UserThings',
+            'DROP TABLE Users',
+        ];
 
-        if (self::$mysqlConn) {
-            if (!self::$mysqlConn->query($sql)) {
-                throw new Exception('Failed to drop MySQL test table: ' . print_r(self::$mysqlConn->error_list, true));
+        foreach ($sql as $query) {
+            if (self::$mysqlConn) {
+                if (!self::$mysqlConn->query($query)) {
+                    throw new Exception('Failed to drop MySQL test table: ' . print_r(self::$mysqlConn->error_list, true));
+                }
             }
-        }
 
-        if (self::$sqlsrvConn) {
-            if (!sqlsrv_query(self::$sqlsrvConn, $sql)) {
-                throw new Exception('Failed to drop SQL Server test table: ' . print_r(sqlsrv_errors(), true));
+            if (self::$sqlsrvConn) {
+                if (!sqlsrv_query(self::$sqlsrvConn, $query)) {
+                    throw new Exception('Failed to drop SQL Server test table: ' . print_r(sqlsrv_errors(), true));
+                }
             }
         }
     }

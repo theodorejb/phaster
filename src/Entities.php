@@ -61,7 +61,18 @@ abstract class Entities
         return [];
     }
 
+    /**
+     * Specify a friendly error message for constraint violations (when inserting/updating rows)
+     */
     protected function getDuplicateError(): string
+    {
+        return '';
+    }
+
+    /**
+     * Specify a friendly error message for constraint violations (when attempting to delete rows)
+     */
+    protected function getConstraintError(): string
     {
         return '';
     }
@@ -102,7 +113,17 @@ abstract class Entities
 
     public function deleteByIds(array $ids): int
     {
-        return $this->db->deleteFrom($this->getTableName(), [$this->getIdColumn() => $ids]);
+        try {
+            return $this->db->deleteFrom($this->getTableName(), [$this->getIdColumn() => $ids]);
+        } catch (SqlException $e) {
+            $constraintError = $this->getConstraintError();
+
+            if ($constraintError !== '' && $e->getSqlState() === '23000') {
+                throw new HttpException($constraintError, StatusCode::CONFLICT, $e);
+            } else {
+                throw $e;
+            }
+        }
     }
 
     public function updateById($id, array $data): int
