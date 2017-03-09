@@ -15,4 +15,4 @@ if (is_readable('test/config.user.php')) {
     $config = array_replace_recursive($config, $userConfig);
 }
 
-Phaster\TestDbConnector::setConfig($config);
+theodorejb\Phaster\TestDbConnector::setConfig($config);

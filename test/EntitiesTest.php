@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phaster;
+namespace theodorejb\Phaster;
 
 use PHPUnit\Framework\TestCase;
 use Teapot\HttpException;

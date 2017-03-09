@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phaster;
+namespace theodorejb\Phaster;
 
 use PeachySQL\{Mysql, PeachySql, SqlServer};
 use PHPUnit\Framework\TestCase;

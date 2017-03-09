@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phaster;
+namespace theodorejb\Phaster;
 
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Teapot\{HttpException, StatusCode};

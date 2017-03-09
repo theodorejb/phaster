@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phaster;
+namespace theodorejb\Phaster;
 
 class Users extends Entities
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phaster;
+namespace theodorejb\Phaster;
 
 use PeachySQL\PeachySql;
 use PeachySQL\SqlException;
