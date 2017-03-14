@@ -28,10 +28,20 @@ class RouteHandler
             $params->limit = null;
 
             foreach ($request->getQueryParams() as $param => $value) {
-                if (property_exists($params, $param)) {
-                    $params->$param = $value;
-                } else {
+                if (!property_exists($params, $param)) {
                     throw new HttpException("Unrecognized parameter '{$param}'", StatusCode::BAD_REQUEST);
+                }
+
+                if ($param === 'q' || $param === 'sort') {
+                    if (!is_array($value)) {
+                        throw new HttpException("Parameter '{$param}' must be an array", StatusCode::BAD_REQUEST);
+                    }
+
+                    $params->$param = $value;
+                } elseif (filter_var($value, FILTER_VALIDATE_INT) === false) {
+                    throw new HttpException("Parameter '{$param}' must be an integer", StatusCode::BAD_REQUEST);
+                } else {
+                    $params->$param = (int)$value;
                 }
             }
 
