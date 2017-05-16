@@ -157,6 +157,17 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
+    public function testEmptyQueries(Entities $entities)
+    {
+        $ids = $entities->addEntities([]);
+        $this->assertSame([], $entities->getEntitiesByIds($ids));
+        $this->assertSame(0, $entities->patchByIds($ids, ['weight' => 10]));
+        $this->assertSame(0, $entities->deleteByIds($ids));
+    }
+
+    /**
+     * @dataProvider entitiesProvider
+     */
     public function testGetDuplicateError(Entities $entities)
     {
         $users = [

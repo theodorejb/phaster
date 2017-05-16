@@ -113,6 +113,10 @@ abstract class Entities
 
     public function deleteByIds(array $ids): int
     {
+        if (count($ids) === 0) {
+            return 0;
+        }
+
         try {
             return $this->db->deleteFrom($this->getTableName(), [$this->getIdColumn() => $ids]);
         } catch (SqlException $e) {
@@ -142,6 +146,10 @@ abstract class Entities
      */
     public function patchByIds(array $ids, array $mergePatch): int
     {
+        if (count($ids) === 0) {
+            return 0;
+        }
+
         $colVals = self::propertiesToColumns($this->getMap(), $this->processValues($mergePatch, $ids));
 
         try {
@@ -199,6 +207,10 @@ abstract class Entities
 
     public function getEntitiesByIds(array $ids): array
     {
+        if (count($ids) === 0) {
+            return [];
+        }
+
         $result = $this->db->selectFrom($this->getBaseSelect())
             ->where([$this->getIdColumn() => $ids])
             ->query();
