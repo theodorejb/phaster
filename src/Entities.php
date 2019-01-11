@@ -226,7 +226,7 @@ abstract class Entities
         return $this->rowsToJson($result->getIterator());
     }
 
-    public function getEntities(array $filter = [], array $sort = [], int $offset = null, int $limit = 0): array
+    public function getEntities(array $filter = [], array $sort = [], int $offset = 0, int $limit = 0): array
     {
         $filter = $this->processFilter($filter);
         $selectMap = $this->getSelectMap();
@@ -239,7 +239,7 @@ abstract class Entities
             ->where(self::propertiesToColumns($selectMap, $filter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort));
 
-        if ($offset !== null) {
+        if ($limit !== 0) {
             $select->offset($offset, $limit);
         }
 

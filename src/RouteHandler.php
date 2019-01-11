@@ -24,8 +24,8 @@ class RouteHandler
             $params = new \stdClass();
             $params->q = [];
             $params->sort = [];
-            $params->offset = null;
-            $params->limit = null;
+            $params->offset = 0;
+            $params->limit = 0;
 
             foreach ($request->getQueryParams() as $param => $value) {
                 if (!property_exists($params, $param)) {
@@ -45,17 +45,38 @@ class RouteHandler
                 }
             }
 
-            if ($params->offset === null && $params->limit !== null) {
-                $params->offset = 0;
-            } elseif ($params->limit === null && $params->offset !== null) {
+            if ($params->limit === 0 && $params->offset !== 0) {
                 $params->limit = 100;
-            } elseif ($params->limit === null) {
-                $params->limit = 0;
+            }
+
+            $checkLimit = $params->limit;
+
+            if ($checkLimit !== 0) {
+                $checkLimit++; // request 1 extra item to determine if on the last page
             }
 
             $instance = $factory->createEntities($class);
-            $entities = $instance->getEntities($params->q, $params->sort, $params->offset, $params->limit);
-            $response->getBody()->write(json_encode(['data' => $entities]));
+            $entities = $instance->getEntities($params->q, $params->sort, $params->offset, $checkLimit);
+
+            if ($checkLimit !== 0) {
+                $resultCount = count($entities);
+                $lastPage = ($resultCount < $checkLimit);
+
+                if (!$lastPage) {
+                    array_pop($entities); // remove extra item
+                }
+
+                $output = [
+                    'offset' => $params->offset,
+                    'limit' => $params->limit,
+                    'lastPage' => $lastPage,
+                    'data' => $entities,
+                ];
+            } else {
+                $output = ['data' => $entities];
+            }
+
+            $response->getBody()->write(json_encode($output));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
