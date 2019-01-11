@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/theodorejb/phaster.svg?branch=master)](https://travis-ci.org/theodorejb/phaster)
 
 Phaster is a library for easily creating RESTful API endpoints.
-It works well with the Slim Framework, and is tested on PHP 7+ as well as HHVM.
+It works well with the Slim Framework, and supports PHP 7.1+.
 
 ## Installation
 

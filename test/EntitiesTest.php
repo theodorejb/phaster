@@ -59,9 +59,10 @@ class EntitiesTest extends TestCase
                 'name' => 'asc',
                 'isDisabled' => 'desc',
             ],
+            'name' => 'asc',
         ];
 
-        $sortExpectation = ['ClientName' => 'asc', 'isDisabled' => 'desc'];
+        $sortExpectation = ['ClientName' => 'asc', 'isDisabled' => 'desc', 'UserName' => 'asc'];
         $this->assertSame($sortExpectation, Entities::propertiesToColumns($this->propertyMap, $sort));
         $this->assertSame([], Entities::propertiesToColumns($this->propertyMap, []));
 
