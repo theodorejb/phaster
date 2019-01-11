@@ -78,6 +78,14 @@ abstract class Entities
     }
 
     /**
+     * Allows overriding the column used to get entities by ID
+     */
+    protected function getSelectId(): string
+    {
+        return $this->getIdColumn();
+    }
+
+    /**
      * Can be used to return a separate property map for filtering/sorting (but not updating)
      */
     protected function getSelectMap(): array
@@ -194,7 +202,7 @@ abstract class Entities
     public function getEntityById($id)
     {
         $result = $this->db->selectFrom($this->getBaseSelect())
-            ->where([$this->getIdColumn() => $id])->query();
+            ->where([$this->getSelectId() => $id])->query();
 
         $entities = $this->rowsToJson($result->getIterator());
 
@@ -212,7 +220,7 @@ abstract class Entities
         }
 
         $result = $this->db->selectFrom($this->getBaseSelect())
-            ->where([$this->getIdColumn() => $ids])
+            ->where([$this->getSelectId() => $ids])
             ->query();
 
         return $this->rowsToJson($result->getIterator());
