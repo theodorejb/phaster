@@ -21,14 +21,15 @@ class RouteHandler
         $factory = $this->entitiesFactory;
 
         return function (ServerRequestInterface $request, ResponseInterface $response) use ($class, $factory): ResponseInterface {
-            $params = new \stdClass();
-            $params->q = [];
-            $params->sort = [];
-            $params->offset = 0;
-            $params->limit = 0;
+            $params = [
+                'q' => [],
+                'sort' => [],
+                'offset' => 0,
+                'limit' => 0,
+            ];
 
             foreach ($request->getQueryParams() as $param => $value) {
-                if (!property_exists($params, $param)) {
+                if (!array_key_exists($param, $params)) {
                     throw new HttpException("Unrecognized parameter '{$param}'", StatusCode::BAD_REQUEST);
                 }
 
@@ -37,26 +38,28 @@ class RouteHandler
                         throw new HttpException("Parameter '{$param}' must be an array", StatusCode::BAD_REQUEST);
                     }
 
-                    $params->$param = $value;
+                    $params[$param] = $value;
                 } elseif (filter_var($value, FILTER_VALIDATE_INT) === false) {
                     throw new HttpException("Parameter '{$param}' must be an integer", StatusCode::BAD_REQUEST);
                 } else {
-                    $params->$param = (int)$value;
+                    $params[$param] = (int)$value;
                 }
             }
 
-            if ($params->limit === 0 && $params->offset !== 0) {
-                $params->limit = 100;
+            if ($params['limit'] === 0 && $params['offset'] !== 0) {
+                $params['limit'] = 100;
+            } elseif ($params['limit'] > 1000) {
+                throw new HttpException('Limit cannot exceed 1000', StatusCode::FORBIDDEN);
             }
 
-            $checkLimit = $params->limit;
+            $checkLimit = $params['limit'];
 
             if ($checkLimit !== 0) {
                 $checkLimit++; // request 1 extra item to determine if on the last page
             }
 
             $instance = $factory->createEntities($class);
-            $entities = $instance->getEntities($params->q, $params->sort, $params->offset, $checkLimit);
+            $entities = $instance->getEntities($params['q'], $params['sort'], $params['offset'], $checkLimit);
 
             if ($checkLimit !== 0) {
                 $resultCount = count($entities);
@@ -67,8 +70,8 @@ class RouteHandler
                 }
 
                 $output = [
-                    'offset' => $params->offset,
-                    'limit' => $params->limit,
+                    'offset' => $params['offset'],
+                    'limit' => $params['limit'],
                     'lastPage' => $lastPage,
                     'data' => $entities,
                 ];

@@ -120,7 +120,7 @@ $app->delete('/users/{id}', $phaster->delete(Users::class));
 ## Author
 
 Theodore Brown  
-<http://theodorejb.me>
+<https://theodorejb.me>
 
 ## License
 
