@@ -16,16 +16,16 @@ class RouteHandler
         $this->entitiesFactory = $factory;
     }
 
-    public function search($class): callable
+    public function search($class, int $defaultLimit = 25, int $maxLimit = 1000): callable
     {
         $factory = $this->entitiesFactory;
 
-        return function (ServerRequestInterface $request, ResponseInterface $response) use ($class, $factory): ResponseInterface {
+        return function (ServerRequestInterface $request, ResponseInterface $response) use ($class, $factory, $defaultLimit, $maxLimit): ResponseInterface {
             $params = [
                 'q' => [],
                 'sort' => [],
                 'offset' => 0,
-                'limit' => 0,
+                'limit' => $defaultLimit,
             ];
 
             foreach ($request->getQueryParams() as $param => $value) {
@@ -46,10 +46,14 @@ class RouteHandler
                 }
             }
 
-            if ($params['limit'] === 0 && $params['offset'] !== 0) {
-                $params['limit'] = 100;
-            } elseif ($params['limit'] > 1000) {
-                throw new HttpException('Limit cannot exceed 1000', StatusCode::FORBIDDEN);
+            if ($params['limit'] === 0) {
+                if ($params['offset'] !== 0) {
+                    throw new HttpException('Limit must be greater than zero', StatusCode::BAD_REQUEST);
+                } elseif ($defaultLimit !== 0) {
+                    throw new HttpException('Limit must be greater than zero', StatusCode::FORBIDDEN);
+                }
+            } elseif ($params['limit'] > $maxLimit) {
+                throw new HttpException("Limit cannot exceed {$maxLimit}", StatusCode::FORBIDDEN);
             }
 
             $checkLimit = $params['limit'];
