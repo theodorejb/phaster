@@ -6,6 +6,7 @@ namespace theodorejb\Phaster;
 
 use PeachySQL\{Mysql, PeachySql, SqlServer};
 use PHPUnit\Framework\TestCase;
+use Teapot\HttpException;
 
 class EntitiesDbTest extends TestCase
 {
@@ -33,6 +34,18 @@ class EntitiesDbTest extends TestCase
     public function entitiesProvider(): array
     {
         $mapper = function (array $db) { return [new Users($db[0])]; };
+        return array_map($mapper, $this->dbProvider());
+    }
+
+    public function legacyUsersProvider(): array
+    {
+        $mapper = function (array $db) { return [new LegacyUsers($db[0])]; };
+        return array_map($mapper, $this->dbProvider());
+    }
+
+    public function modernUsersProvider(): array
+    {
+        $mapper = function (array $db) { return [new ModernUsers($db[0]), $db[0]]; };
         return array_map($mapper, $this->dbProvider());
     }
 
@@ -246,6 +259,86 @@ class EntitiesDbTest extends TestCase
                 'isDisabled' => false,
             ];
         }
+
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @dataProvider legacyUsersProvider
+     */
+    public function testLegacyUsers(Entities $entities)
+    {
+        $users = [];
+
+        for ($i = 1; $i <= 20; $i++) {
+            $users[] = [
+                'name' => "Legacy user {$i}",
+                'birthday' => '2000-02-19',
+                'isDisabled' => true,
+                'weight' => $i * 10,
+            ];
+        }
+
+        $ids = $entities->addEntities($users);
+        $actual = $entities->getEntities(['id' => $ids[4]]);
+
+        $expected = [
+            [
+                'id' => $ids[4],
+                'name' => 'Legacy user 5',
+                'thing' => ['id' => null],
+            ],
+        ];
+
+        $this->assertSame($expected, $actual);
+
+        try {
+            $entities->getEntities([], [], 0, 0, ['name']);
+            $this->fail('Failed to throw exception for invalid fields usage');
+        } catch (HttpException $e) {
+            $this->assertSame('fields parameter is not supported for this endpoint', $e->getMessage());
+        }
+    }
+
+    /**
+     * @dataProvider modernUsersProvider
+     */
+    public function testModernUsers(Entities $entities, PeachySql $db)
+    {
+        $users = [];
+
+        for ($i = 1; $i <= 10; $i++) {
+            $users[] = [
+                'name' => "Modern user {$i}",
+                'birthday' => '2000-02-20',
+                'isDisabled' => false,
+                'weight' => $i * 10,
+            ];
+        }
+
+        $ids = $entities->addEntities($users);
+        $db->insertRow('UserThings', ['user_id' => $ids[3]]);
+
+        $actual = $entities->getEntitiesByIds([$ids[2], $ids[3]], ['id', 'name', 'isDisabled', 'weight', 'thing.uid']);
+
+        $expected = [
+            [
+                'id' => $ids[2],
+                'name' => 'Modern user 3',
+                'isDisabled' => false,
+                'weight' => 30.0,
+                'thing' => null,
+            ],
+            [
+                'id' => $ids[3],
+                'name' => 'Modern user 4',
+                'isDisabled' => false,
+                'weight' => 40.0,
+                'thing' => [
+                    'uid' => $ids[3],
+                ],
+            ],
+        ];
 
         $this->assertSame($expected, $actual);
     }

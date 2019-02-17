@@ -6,6 +6,8 @@ require 'vendor/autoload.php';
 
 // not autoloaded by Composer
 require 'test/db/Users.php';
+require 'test/db/LegacyUsers.php';
+require 'test/db/ModernUsers.php';
 require 'test/db/TestDbConnector.php';
 
 $config = require 'test/config.php';

@@ -24,6 +24,199 @@ class EntitiesTest extends TestCase
         ],
     ];
 
+    public function testSelectMapToPropMap()
+    {
+        $expected = [
+            'name' => ['col' => 'UserName'],
+            'client.id' => ['col' => 'ClientID'],
+            'client.name' => ['col' => 'ClientName'],
+            'client.isDisabled' => ['col' => 'isDisabled'],
+            'group.type.id' => ['col' => 'GroupTypeID'],
+            'group.type.name' => ['col' => 'GroupName'],
+        ];
+
+        $this->assertSame($expected, Entities::selectMapToPropMap($this->propertyMap));
+    }
+
+    public function testPropMapToSelectMap()
+    {
+        $propMap = [
+            'name' => ['col' => 'UserName'],
+            'client.id' => ['col' => 'ClientID'],
+            'client.name' => ['col' => 'ClientName'],
+            'client.isDisabled' => ['col' => 'isDisabled'],
+            'group.type.id' => ['col' => 'GroupTypeID'],
+            'group.type.name' => ['col' => 'GroupName'],
+        ];
+
+        $propMap = Entities::rawPropMapToPropMap($propMap);
+        $this->assertSame($this->propertyMap, Entities::propMapToSelectMap($propMap));
+    }
+
+    public function testPropMapToAliasMap()
+    {
+        $utc = new \DateTimeZone('UTC');
+
+        $rawPropMap = [
+            'id' => ['col' => 'UserID'],
+            'username' => ['col' => 'a.UserName'],
+            'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'isClientDisabled', 'type' => 'bool'],
+            'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => $utc],
+        ];
+
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
+
+        $expected = [
+            'UserID' => $propMap['id'],
+            'UserName' => $propMap['username'],
+            'isClientDisabled' => $propMap['client.isDisabled'],
+            'DateCreatedUTC' => $propMap['dateCreated'],
+        ];
+
+        $this->assertSame($expected, Entities::propMapToAliasMap($propMap));
+    }
+
+    public function testMapRows()
+    {
+        $usernameMapper = function ($row) {
+            return ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
+        };
+
+        $rawPropMap = [
+            'id' => ['col' => 'UserID'],
+            'username' => ['col' => 'a.UserName', 'getValue' => $usernameMapper],
+            'client.id' => ['col' => 'a.ClientID'],
+            'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'clientDisabled', 'type' => 'bool'],
+            'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => new \DateTimeZone('UTC')],
+        ];
+
+        $generator = function () {
+            yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'clientDisabled' => 0, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
+            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'clientDisabled' => 1, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
+            yield ['UserID' => 1, 'UserName' => 'test_user',  'ClientID' => null, 'clientDisabled' => null, 'DateCreatedUTC' => null];
+        };
+
+        $expected = [
+            ['id' => 5, 'username' => 'theodoreb', 'client' => ['id' => 1, 'isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
+            ['id' => 42, 'username' => 'jsmith', 'client' => ['id' => 2, 'isDisabled' => true], 'dateCreated' => '2018-05-20T23:22:40+00:00'],
+            ['id' => 1, 'username' => 'testUser', 'client' => ['id' => null, 'isDisabled' => false], 'dateCreated' => null],
+        ];
+
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
+        $this->assertSame($expected, Entities::mapRows($generator(), Entities::propMapToAliasMap($propMap)));
+
+        $expected = [
+            ['id' => 5, 'username' => 'theodoreb', 'client' => ['id' => 1, 'isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
+            ['id' => 42, 'username' => 'jsmith', 'client' => ['id' => 2, 'isDisabled' => true], 'dateCreated' => '2018-05-20T23:22:40+00:00'],
+            ['id' => 1, 'username' => 'testUser', 'client' => null, 'dateCreated' => null],
+        ];
+
+        $rawPropMap['client.id']['nullGroup'] = true;
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
+        $this->assertSame($expected, Entities::mapRows($generator(), Entities::propMapToAliasMap($propMap)));
+
+        $expected = [
+            ['id' => 5, 'username' => 'theodoreb', 'client' => ['isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
+            ['id' => 42, 'username' => 'jsmith', 'client' => ['isDisabled' => true], 'dateCreated' => '2018-05-20T23:22:40+00:00'],
+            ['id' => 1, 'username' => 'testUser', 'client' => null, 'dateCreated' => null],
+        ];
+
+        $fieldProps = Entities::getFieldPropMap(['id', 'username', 'client.isDisabled', 'dateCreated'], $propMap);
+        $this->assertSame($expected, Entities::mapRows($generator(), Entities::propMapToAliasMap($fieldProps)));
+    }
+
+    public function testGetFieldPropMap()
+    {
+        $rawPropMap = [
+            'username' => ['col' => 'UserName', 'notDefault' => true],
+            'client.id' => ['col' => 'ClientID', 'nullGroup' => true],
+            'client.name' => ['col' => 'Company', 'alias' => 'ClientName'],
+            'client.isDisabled' => ['col' => 'isDisabled'],
+            'group.type.id' => ['col' => 'GroupTypeID'],
+            'group.type.name' => ['col' => 'GroupName'],
+            'groupName' => ['col' => 'DiffGroupName'],
+        ];
+
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
+        $expected = $propMap;
+        unset($expected['username']);
+        $this->assertSame($expected, Entities::getFieldPropMap([], $propMap));
+
+        $expected = [
+            'username' => $propMap['username'],
+            'group.type.id' => $propMap['group.type.id'],
+            'group.type.name' => $propMap['group.type.name'],
+        ];
+
+        $this->assertSame($expected, Entities::getFieldPropMap(['username', 'group'], $propMap));
+
+        $expected = ['client.isDisabled', 'groupName', 'client.id'];
+        $actual = Entities::getFieldPropMap(['client.isDisabled', 'groupName'], $propMap);
+        $this->assertSame($expected, array_keys($actual));
+        $this->assertFalse($actual['groupName']->noOutput);
+        $this->assertTrue($actual['client.id']->noOutput);
+
+        $expected = [
+            'client.id' => $propMap['client.id'],
+            'client.name' => $propMap['client.name'],
+            'client.isDisabled' => $propMap['client.isDisabled'],
+            'group.type.id' => $propMap['group.type.id'],
+            'group.type.name' => $propMap['group.type.name'],
+        ];
+
+        $this->assertSame($expected, Entities::getFieldPropMap(['client', 'group.type'], $propMap));
+
+        try {
+            Entities::getFieldPropMap(['group.test'], $propMap);
+            $this->fail('Failed to throw HttpException for invalid field');
+        } catch (HttpException $e) {
+            $this->assertSame("'group.test' is not a valid field", $e->getMessage());
+        }
+
+        try {
+            Entities::getFieldPropMap([' username'], $propMap);
+            $this->fail('Failed to throw HttpException for invalid username field');
+        } catch (HttpException $e) {
+            $this->assertSame("' username' is not a valid field", $e->getMessage());
+        }
+    }
+
+    public function testRawPropMapToPropMap()
+    {
+        $propMap = [
+            'username' => ['alias' => 'Name'],
+        ];
+
+        try {
+            Entities::rawPropMapToPropMap($propMap);
+            $this->fail('Failed to throw exception for missing col key');
+        } catch (\Exception $e) {
+            $this->assertSame("username property must have 'col' key", $e->getMessage());
+        }
+
+        $propMap = [
+            'lastName' => ['col' => 'LastName', 'nullGroup' => true],
+        ];
+
+        try {
+            Entities::rawPropMapToPropMap($propMap);
+            $this->fail('Failed to throw exception for invalid nullGroup');
+        } catch (\Exception $e) {
+            $this->assertSame("nullGroup cannot be set on top-level lastName property", $e->getMessage());
+        }
+
+        $propMap = [
+            'firstName' => ['col' => 'FirstName', 'foobar' => true],
+        ];
+
+        try {
+            Entities::rawPropMapToPropMap($propMap);
+            $this->fail('Failed to throw exception for invalid foobar key');
+        } catch (\Exception $e) {
+            $this->assertSame("Invalid key 'foobar' on firstName property", $e->getMessage());
+        }
+    }
+
     public function testPropertiesToColumns()
     {
         $q = [

@@ -24,6 +24,7 @@ class RouteHandler
             $params = [
                 'q' => [],
                 'sort' => [],
+                'fields' => [],
                 'offset' => 0,
                 'limit' => $defaultLimit,
             ];
@@ -39,6 +40,8 @@ class RouteHandler
                     }
 
                     $params[$param] = $value;
+                } elseif ($param === 'fields') {
+                    $params[$param] = explode(',', $value);
                 } elseif (filter_var($value, FILTER_VALIDATE_INT) === false) {
                     throw new HttpException("Parameter '{$param}' must be an integer", StatusCode::BAD_REQUEST);
                 } else {
@@ -63,7 +66,7 @@ class RouteHandler
             }
 
             $instance = $factory->createEntities($class);
-            $entities = $instance->getEntities($params['q'], $params['sort'], $params['offset'], $checkLimit);
+            $entities = $instance->getEntities($params['q'], $params['sort'], $params['offset'], $checkLimit, $params['fields']);
 
             if ($checkLimit !== 0) {
                 $resultCount = count($entities);

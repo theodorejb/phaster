@@ -36,7 +36,7 @@ class Users extends Entities
             $users[] = [
                 'id' => $row['user_id'],
                 'name' => $row['name'],
-                'birthday' => (new \DateTime($row['dob']))->format('Y-m-d'),
+                'birthday' => $row['dob'],
                 'weight' => $row['weight'],
                 'isDisabled' => (bool)$row['isDisabled'],
             ];

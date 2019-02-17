@@ -11,26 +11,21 @@ It works well with the Slim Framework, and supports PHP 7.1+.
 
 ## Usage
 
-Create a class extending theodorejb\Phaster\Entities. Implement the required methods (`getMap`,
-`getIdColumn`, and `rowsToJson`). By default, the table name will be inferred from the
-class name and all columns in the table will be selected, but this can be overridden
-using the `getTableName` and `getBaseSelect` methods.
+Create a class extending theodorejb\Phaster\Entities. Implement the `getMap()`
+and `getDefaultSort()` methods. By default, the table name will be inferred
+from the class name, and all mapped columns in this table will be selected.
 
-Pass the callable returned by the route handling functions to your Slim or other PSR-7
-compatible framework.
+To join other tables and alter output values, implement the `getBaseQuery()`
+and `getPropMap()` methods.  Pass the callable returned by the route handling
+functions to your Slim or other PSR-7 compatible framework.
 
 ```php
 <?php
 
-use theodorejb\Phaster\Entities;
+use theodorejb\Phaster\{Entities, QueryOptions};
 
 class Users extends Entities
 {
-    protected function getIdColumn(): string
-    {
-        return "user_id";
-    }
-
     protected function getMap(): array
     {
         // map columns in Users table
@@ -39,50 +34,30 @@ class Users extends Entities
             'firstName' => 'fname',
             'lastName' => 'lname',
             'office' => [
-                'id' => 'office_id'
-            ]
+                'id' => 'office_id',
+            ],
         ];
     }
 
-    protected function getBaseSelect(): string
+    protected function getPropMap(): array
     {
-        return 'SELECT u.user_id, u.uname, u.fname, u.lname, u.office_id, o.office_name
-            FROM Users u
-            INNER JOIN Offices o ON o.OfficeID = u.OfficeID';
+        return [
+            // valid options can be found in the Prop class
+            'id' => ['col' => 'u.user_id'],
+            'office.name' => ['col' => 'o.office_name'],
+        ];
     }
 
-    protected function getSearchMap(): array
+    protected function getBaseQuery(QueryOptions $options): string
     {
-        return array_merge_recursive($this->getMap(), [
-            'office' => [
-                'name' => 'office_name'
-            ]
-        ]);
+        return "SELECT {$options->getColumns()}
+                FROM Users u
+                INNER JOIN Offices o ON o.OfficeID = u.OfficeID";
     }
 
     protected function getDefaultSort(): array
     {
         return ['username' => 'asc'];
-    }
-
-    protected function rowsToJson(Generator $rows): array
-    {
-        $json = [];
-
-        foreach ($rows as $row) {
-            $json[] = [
-                'id' => $row['user_id'],
-                'username' => $row['uname'],
-                'firstName' => $row['fname'],
-                'lastName' => $row['lname'],
-                'office' => [
-                    'id' => $row['office_id'],
-                    'name' => $row['office_name'],
-                ],
-            ];
-        }
-
-        return $json;
     }
 }
 ```

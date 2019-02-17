@@ -80,6 +80,14 @@ class TestDbConnector
             throw new Exception('Failed to create SQL Server test table: ' . print_r(sqlsrv_errors(), true));
         }
 
+        $sql = 'CREATE VIEW vUsers AS
+                SELECT user_id AS u_id, name, dob, weight, isDisabled
+                FROM Users;';
+
+        if (!sqlsrv_query($conn, $sql)) {
+            throw new Exception('Failed to create SQL Server test view: ' . print_r(sqlsrv_errors(), true));
+        }
+
         $sql = 'CREATE TABLE UserThings (
                     thing_id INT PRIMARY KEY IDENTITY NOT NULL,
                     user_id INT NOT NULL FOREIGN KEY REFERENCES Users(user_id)
@@ -104,6 +112,14 @@ class TestDbConnector
             throw new Exception('Failed to create MySQL test table: ' . print_r($conn->error_list, true));
         }
 
+        $sql = 'CREATE VIEW vUsers AS
+                SELECT user_id AS u_id, name, dob, weight, isDisabled
+                FROM Users;';
+
+        if (!$conn->query($sql)) {
+            throw new Exception('Failed to create MySQL test view: ' . print_r($conn->error_list, true));
+        }
+
         $sql = 'CREATE TABLE UserThings (
                     thing_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
                     user_id INT NOT NULL,
@@ -119,6 +135,7 @@ class TestDbConnector
     {
         $sql = [
             'DROP TABLE UserThings',
+            'DROP VIEW vUsers',
             'DROP TABLE Users',
         ];
 
