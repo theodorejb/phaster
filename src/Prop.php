@@ -21,6 +21,8 @@ class Prop
     /** @var \DateTimeZone | null | false */
     public $timeZone = false;
 
+    /** @var string[] */
+    public $dependsOn = [];
     public $nullGroup = false;
     public $isDefault = true;
     public $noOutput = false;
@@ -88,6 +90,10 @@ class Prop
             }
         }
 
+        if (isset($options['dependsOn'])) {
+            $this->dependsOn = $options['dependsOn']; // validated in rawPropMapToPropMap
+        }
+
         if (isset($options['nullGroup'])) {
             if (gettype($options['nullGroup']) !== 'boolean') {
                 throw new \Exception("nullGroup key on {$prop} property must be a boolean");
@@ -112,6 +118,7 @@ class Prop
             $options['getValue'],
             $options['type'],
             $options['timeZone'],
+            $options['dependsOn'],
             $options['nullGroup'],
             $options['notDefault']
         );

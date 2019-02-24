@@ -301,8 +301,7 @@ abstract class Entities
         }
 
         if ($this->isModern) {
-            $aliasMap = self::propMapToAliasMap($queryOptions->getFieldProps());
-            return self::mapRows($select->query()->getIterator(), $aliasMap);
+            return self::mapRows($select->query()->getIterator(), $queryOptions->getFieldProps());
         }
 
         return $this->rowsToJson($select->query()->getIterator());
@@ -325,12 +324,13 @@ abstract class Entities
     /**
      * @param Prop[] $aliasMap
      */
-    public static function mapRows(\Generator $rows, array $aliasMap): array
+    public static function mapRows(\Generator $rows, array $fieldProps): array
     {
         if (!$rows->valid()) {
             return []; // no rows selected
         }
 
+        $aliasMap = self::propMapToAliasMap($fieldProps);
         $entities = [];
 
         foreach ($rows as $row) {
@@ -341,13 +341,11 @@ abstract class Entities
             foreach ($row as $colName => $value) {
                 $prop = $aliasMap[$colName];
 
-                if ($prop->nullGroup) {
-                    if ($value === null) {
-                        $nullParents[] = $prop;
-                        continue;
-                    } elseif ($prop->noOutput) {
-                        continue;
-                    }
+                if ($prop->nullGroup && $value === null) {
+                    $nullParents[] = $prop;
+                    continue;
+                } elseif ($prop->noOutput) {
+                    continue;
                 }
 
                 if ($prop->getValue) {
@@ -404,25 +402,36 @@ abstract class Entities
                 }
             }
         } else {
+            $dependedOn = [];
+
             foreach ($fields as $field) {
+                /** @var Prop[] $matches */
+                $matches = [];
+
                 if (isset($propMap[$field])) {
-                    $fieldProps[$field] = $propMap[$field];
+                    $matches[$field] = $propMap[$field];
                 } else {
                     // check for sub-fields
                     $parent = $field . '.';
                     $length = strlen($parent);
-                    $foundChild = false;
 
                     foreach ($propMap as $prop => $data) {
                         if (substr($prop, 0, $length) === $parent) {
-                            $fieldProps[$prop] = $data;
-                            $foundChild = true;
+                            $matches[$prop] = $data;
                         }
                     }
 
-                    if (!$foundChild) {
+                    if (count($matches) === 0) {
                         throw new HttpException("'{$field}' is not a valid field", StatusCode::BAD_REQUEST);
                     }
+                }
+
+                foreach ($matches as $prop => $data) {
+                    foreach ($data->dependsOn as $value) {
+                        $dependedOn[$value] = true;
+                    }
+
+                    $fieldProps[$prop] = $data;
                 }
             }
 
@@ -435,11 +444,11 @@ abstract class Entities
             }
 
             foreach ($propMap as $prop => $data) {
-                if (!$data->nullGroup || isset($fieldProps[$prop])) {
-                    continue; // already selected or not a nullable group identifier
+                if (isset($fieldProps[$prop])) {
+                    continue; // already selected
                 }
 
-                if (isset($selectedParents[$data->getParent()])) {
+                if (isset($dependedOn[$prop]) || ($data->nullGroup && isset($selectedParents[$data->getParent()]))) {
                     $data = clone $data;
                     $data->noOutput = true;
                     $fieldProps[$prop] = $data;
@@ -458,6 +467,22 @@ abstract class Entities
         $propMap = [];
 
         foreach ($map as $prop => $options) {
+            if (isset($options['dependsOn'])) {
+                if (!is_array($options['dependsOn'])) {
+                    throw new \Exception("dependsOn key on {$prop} property must be an array");
+                }
+
+                if (count($options['dependsOn']) !== 0 && !isset($options['getValue'])) {
+                    throw new \Exception("dependsOn key on {$prop} property cannot be used without getValue function");
+                }
+
+                foreach ($options['dependsOn'] as $field) {
+                    if ($field === $prop || !isset($map[$field])) {
+                        throw new \Exception("Invalid dependsOn value '{$field}' on {$prop} property");
+                    }
+                }
+            }
+
             $propMap[$prop] = new Prop($prop, $options);
         }
 

@@ -79,12 +79,16 @@ class EntitiesTest extends TestCase
     public function testMapRows()
     {
         $usernameMapper = function ($row) {
+            if (!array_key_exists('DateCreatedUTC', $row)) {
+                throw new \Exception('Missing dependent DateCreatedUTC column');
+            }
+
             return ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
         };
 
         $rawPropMap = [
             'id' => ['col' => 'UserID'],
-            'username' => ['col' => 'a.UserName', 'getValue' => $usernameMapper],
+            'username' => ['col' => 'a.UserName', 'getValue' => $usernameMapper, 'dependsOn' => ['dateCreated']],
             'client.id' => ['col' => 'a.ClientID'],
             'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'clientDisabled', 'type' => 'bool'],
             'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => new \DateTimeZone('UTC')],
@@ -103,7 +107,7 @@ class EntitiesTest extends TestCase
         ];
 
         $propMap = Entities::rawPropMapToPropMap($rawPropMap);
-        $this->assertSame($expected, Entities::mapRows($generator(), Entities::propMapToAliasMap($propMap)));
+        $this->assertSame($expected, Entities::mapRows($generator(), $propMap));
 
         $expected = [
             ['id' => 5, 'username' => 'theodoreb', 'client' => ['id' => 1, 'isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
@@ -113,7 +117,7 @@ class EntitiesTest extends TestCase
 
         $rawPropMap['client.id']['nullGroup'] = true;
         $propMap = Entities::rawPropMapToPropMap($rawPropMap);
-        $this->assertSame($expected, Entities::mapRows($generator(), Entities::propMapToAliasMap($propMap)));
+        $this->assertSame($expected, Entities::mapRows($generator(), $propMap));
 
         $expected = [
             ['id' => 5, 'username' => 'theodoreb', 'client' => ['isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
@@ -122,7 +126,17 @@ class EntitiesTest extends TestCase
         ];
 
         $fieldProps = Entities::getFieldPropMap(['id', 'username', 'client.isDisabled', 'dateCreated'], $propMap);
-        $this->assertSame($expected, Entities::mapRows($generator(), Entities::propMapToAliasMap($fieldProps)));
+        $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
+
+        $expected = [
+            ['id' => 5, 'username' => 'theodoreb', 'client' => ['isDisabled' => false]],
+            ['id' => 42, 'username' => 'jsmith', 'client' => ['isDisabled' => true]],
+            ['id' => 1, 'username' => 'testUser', 'client' => null],
+        ];
+
+        $fieldProps = Entities::getFieldPropMap(['id', 'username', 'client.isDisabled'], $propMap);
+        // DateCreatedUTC column should be selected but not output
+        $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
     }
 
     public function testGetFieldPropMap()
@@ -214,6 +228,41 @@ class EntitiesTest extends TestCase
             $this->fail('Failed to throw exception for invalid foobar key');
         } catch (\Exception $e) {
             $this->assertSame("Invalid key 'foobar' on firstName property", $e->getMessage());
+        }
+
+        $propMap = [
+            'isBillable' => ['col' => 'isBillable', 'dependsOn' => false],
+            'isDisabled' => ['col' => 'isDisabled'],
+        ];
+
+        try {
+            Entities::rawPropMapToPropMap($propMap);
+            $this->fail('Failed to throw exception for invalid dependsOn key type');
+        } catch (\Exception $e) {
+            $this->assertSame("dependsOn key on isBillable property must be an array", $e->getMessage());
+        }
+
+        $propMap['isBillable']['dependsOn'] = ['isDisabled'];
+
+        try {
+            Entities::rawPropMapToPropMap($propMap);
+            $this->fail('Failed to throw exception for dependsOn key without getValue function');
+        } catch (\Exception $e) {
+            $this->assertSame("dependsOn key on isBillable property cannot be used without getValue function", $e->getMessage());
+        }
+
+        $propMap['isBillable']['getValue'] = function ($row) { return ''; };
+        $invalidDependsOnValues = ['isBillable', 'notAProp'];
+
+        foreach ($invalidDependsOnValues as $dependsOn) {
+            $propMap['isBillable']['dependsOn'] = [$dependsOn];
+
+            try {
+                Entities::rawPropMapToPropMap($propMap);
+                $this->fail('Failed to throw exception for invalid dependsOn key value');
+            } catch (\Exception $e) {
+                $this->assertSame("Invalid dependsOn value '{$dependsOn}' on isBillable property", $e->getMessage());
+            }
         }
     }
 
