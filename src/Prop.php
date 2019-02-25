@@ -33,10 +33,19 @@ class Prop
     /** @var int */
     public $depth;
 
+    /** @var string[] */
+    public $parents = [];
+
     public function __construct(string $prop, array $options)
     {
         $this->map = explode('.', $prop);
         $this->depth = count($this->map);
+        $parent = '';
+
+        for ($i = 0; $i < $this->depth - 1; $i++) {
+            $parent .= $this->map[$i] . '.';
+            $this->parents[] = $parent;
+        }
 
         if (!isset($options['col'])) {
             throw new \Exception("{$prop} property must have 'col' key");
@@ -127,11 +136,6 @@ class Prop
             // any remaining options are invalid
             throw new \Exception("Invalid key '{$key}' on {$prop} property");
         }
-    }
-
-    public function getParent(): string
-    {
-        return implode('.', array_slice($this->map, 0, -1));
     }
 
     public function getOutputCol(): string

@@ -79,45 +79,56 @@ class EntitiesTest extends TestCase
     public function testMapRows()
     {
         $usernameMapper = function ($row) {
-            if (!array_key_exists('DateCreatedUTC', $row)) {
-                throw new \Exception('Missing dependent DateCreatedUTC column');
-            }
-
             return ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
         };
 
         $rawPropMap = [
             'id' => ['col' => 'UserID'],
-            'username' => ['col' => 'a.UserName', 'getValue' => $usernameMapper, 'dependsOn' => ['dateCreated']],
+            'username' => ['col' => 'a.UserName', 'getValue' => $usernameMapper, 'dependsOn' => ['id']],
             'client.id' => ['col' => 'a.ClientID'],
-            'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'clientDisabled', 'type' => 'bool'],
+            'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'Disabled', 'type' => 'bool'],
+            'client.type.id' => ['col' => 'TypeID', 'nullGroup' => true],
             'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => new \DateTimeZone('UTC')],
         ];
 
+        // test mapping all fields with nullable client.type group
         $generator = function () {
-            yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'clientDisabled' => 0, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
-            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'clientDisabled' => 1, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
-            yield ['UserID' => 1, 'UserName' => 'test_user',  'ClientID' => null, 'clientDisabled' => null, 'DateCreatedUTC' => null];
+            yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'Disabled' => 0, 'TypeID' => 2, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
+            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'Disabled' => 1, 'TypeID' => null, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
+            yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'Disabled' => null, 'TypeID' => null, 'DateCreatedUTC' => null];
         };
 
         $expected = [
-            ['id' => 5, 'username' => 'theodoreb', 'client' => ['id' => 1, 'isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
-            ['id' => 42, 'username' => 'jsmith', 'client' => ['id' => 2, 'isDisabled' => true], 'dateCreated' => '2018-05-20T23:22:40+00:00'],
-            ['id' => 1, 'username' => 'testUser', 'client' => ['id' => null, 'isDisabled' => false], 'dateCreated' => null],
+            ['id' => 5, 'username' => 'theodoreb', 'client' => ['id' => 1, 'isDisabled' => false, 'type' => ['id' => 2]], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
+            ['id' => 42, 'username' => 'jsmith', 'client' => ['id' => 2, 'isDisabled' => true, 'type' => null], 'dateCreated' => '2018-05-20T23:22:40+00:00'],
+            ['id' => 1, 'username' => 'testUser', 'client' => ['id' => null, 'isDisabled' => false, 'type' => null], 'dateCreated' => null],
         ];
 
         $propMap = Entities::rawPropMapToPropMap($rawPropMap);
         $this->assertSame($expected, Entities::mapRows($generator(), $propMap));
+
+        // test mapping non-client fields
+        $generator = function () {
+            yield ['UserID' => 5, 'UserName' => 'theodoreb', 'DateCreatedUTC' => '2019-02-18 09:01:35'];
+            yield ['UserID' => 42, 'UserName' => 'jsmith', 'DateCreatedUTC' => '2018-05-20 23:22:40'];
+            yield ['UserID' => 1, 'UserName' => 'test',  'DateCreatedUTC' => null];
+        };
 
         $expected = [
-            ['id' => 5, 'username' => 'theodoreb', 'client' => ['id' => 1, 'isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
-            ['id' => 42, 'username' => 'jsmith', 'client' => ['id' => 2, 'isDisabled' => true], 'dateCreated' => '2018-05-20T23:22:40+00:00'],
-            ['id' => 1, 'username' => 'testUser', 'client' => null, 'dateCreated' => null],
+            ['id' => 5, 'username' => 'theodoreb', 'dateCreated' => '2019-02-18T09:01:35+00:00'],
+            ['id' => 42, 'username' => 'jsmith', 'dateCreated' => '2018-05-20T23:22:40+00:00'],
+            ['id' => 1, 'username' => 'testUser', 'dateCreated' => null],
         ];
 
-        $rawPropMap['client.id']['nullGroup'] = true;
-        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
-        $this->assertSame($expected, Entities::mapRows($generator(), $propMap));
+        $fieldProps = Entities::getFieldPropMap(['id', 'username', 'dateCreated'], $propMap);
+        $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
+
+        // test nullable client group when selecting client.isDisabled child property
+        $generator = function () {
+            yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'Disabled' => 0, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
+            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'Disabled' => 1, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
+            yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'Disabled' => null, 'DateCreatedUTC' => null];
+        };
 
         $expected = [
             ['id' => 5, 'username' => 'theodoreb', 'client' => ['isDisabled' => false], 'dateCreated' => '2019-02-18T09:01:35+00:00'],
@@ -125,17 +136,25 @@ class EntitiesTest extends TestCase
             ['id' => 1, 'username' => 'testUser', 'client' => null, 'dateCreated' => null],
         ];
 
+        $rawPropMap['client.id']['nullGroup'] = true;
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
         $fieldProps = Entities::getFieldPropMap(['id', 'username', 'client.isDisabled', 'dateCreated'], $propMap);
         $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
 
+        // test nullable client group when selecting client.type.id grandchild property
+        $generator = function () {
+            yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'TypeID' => 2];
+            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'TypeID' => null];
+            yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'TypeID' => null];
+        };
+
         $expected = [
-            ['id' => 5, 'username' => 'theodoreb', 'client' => ['isDisabled' => false]],
-            ['id' => 42, 'username' => 'jsmith', 'client' => ['isDisabled' => true]],
-            ['id' => 1, 'username' => 'testUser', 'client' => null],
+            ['username' => 'theodoreb', 'client' => ['type' => ['id' => 2]]],
+            ['username' => 'jsmith', 'client' => ['type' => null]],
+            ['username' => 'testUser', 'client' => null],
         ];
 
-        $fieldProps = Entities::getFieldPropMap(['id', 'username', 'client.isDisabled'], $propMap);
-        // DateCreatedUTC column should be selected but not output
+        $fieldProps = Entities::getFieldPropMap(['username', 'client.type.id'], $propMap);
         $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
     }
 
@@ -180,6 +199,18 @@ class EntitiesTest extends TestCase
 
         $this->assertSame($expected, Entities::getFieldPropMap(['client', 'group.type'], $propMap));
 
+        // test selection when dependant field is in a nullable group
+        $valueGetter = function ($row) { return ''; };
+        $rawPropMap['groupName']['dependsOn'] = ['client.name'];
+        $rawPropMap['groupName']['getValue'] = $valueGetter;
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
+
+        $expected = ['groupName', 'client.name'];
+        $actual = Entities::getFieldPropMap(['groupName'], $propMap);
+        $this->assertSame($expected, array_keys($actual));
+        $this->assertFalse($actual['groupName']->noOutput);
+        $this->assertTrue($actual['client.name']->noOutput);
+
         try {
             Entities::getFieldPropMap(['group.test'], $propMap);
             $this->fail('Failed to throw HttpException for invalid field');
@@ -193,6 +224,30 @@ class EntitiesTest extends TestCase
         } catch (HttpException $e) {
             $this->assertSame("' username' is not a valid field", $e->getMessage());
         }
+
+        // test dependent field marked as not default
+        $rawPropMap = [
+            'username' => ['col' => 'UserName', 'notDefault' => true],
+            'client.id' => ['col' => 'ClientID', 'nullGroup' => true, 'getValue' => $valueGetter, 'dependsOn' => ['username']],
+            'client.name' => ['col' => 'Company', 'alias' => 'ClientName'],
+        ];
+
+        $propMap = Entities::rawPropMapToPropMap($rawPropMap);
+
+        // don't select dependent username field since client.id isn't output anyway
+        $expected = ['client.name', 'client.id'];
+        $actual = Entities::getFieldPropMap(['client.name'], $propMap);
+        $this->assertSame($expected, array_keys($actual));
+        $this->assertFalse($actual['client.name']->noOutput);
+        $this->assertTrue($actual['client.id']->noOutput);
+
+        // username should be selected even though it isn't default since client.id is marked as dependent on it
+        $expected = ['client.id', 'client.name', 'username'];
+        $actual = Entities::getFieldPropMap([], $propMap);
+        $this->assertSame($expected, array_keys($actual));
+        $this->assertFalse($actual['client.id']->noOutput);
+        $this->assertFalse($actual['client.name']->noOutput);
+        $this->assertTrue($actual['username']->noOutput);
     }
 
     public function testRawPropMapToPropMap()

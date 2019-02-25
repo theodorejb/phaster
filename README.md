@@ -28,23 +28,26 @@ class Users extends Entities
 {
     protected function getMap(): array
     {
-        // map columns in Users table
+        // map properties to columns in Users table
         return [
             'username' => 'uname',
             'firstName' => 'fname',
             'lastName' => 'lname',
-            'office' => [
-                'id' => 'office_id',
+            'isDisabled' => 'disabled',
+            'role' => [
+                'id' => 'role_id',
             ],
         ];
     }
 
     protected function getPropMap(): array
     {
+        // map additional properties for selecting/filtering and set output options
         return [
-            // valid options can be found in the Prop class
             'id' => ['col' => 'u.user_id'],
-            'office.name' => ['col' => 'o.office_name'],
+            'isDisabled' => ['col' => 'u.disabled', 'type' => 'bool'],
+            'role.id' => ['col' => 'u.role_id'],
+            'role.name' => ['col' => 'r.role_name'],
         ];
     }
 
@@ -52,7 +55,7 @@ class Users extends Entities
     {
         return "SELECT {$options->getColumns()}
                 FROM Users u
-                INNER JOIN Offices o ON o.OfficeID = u.OfficeID";
+                INNER JOIN Roles r ON r.role_id = u.role_id";
     }
 
     protected function getDefaultSort(): array
@@ -90,6 +93,36 @@ $app->post('/users', $phaster->insert(Users::class));
 $app->put('/users/{id}', $phaster->update(Users::class));
 $app->patch('/users/{id}', $phaster->patch(Users::class));
 $app->delete('/users/{id}', $phaster->delete(Users::class));
+```
+
+### Example API request/response
+
+GET https://example.com/api/users?q[firstName]=Ted&q[isDisabled]=0&fields=id,username,role
+
+```json
+{
+    "offset": 0,
+    "limit": 25,
+    "lastPage": true,
+    "data": [
+        {
+            "id": 5,
+            "username": "Teddy01",
+            "role": {
+                "id": 1,
+                "name": "Admin"
+            }
+        },
+        {
+            "id": 38,
+            "username": "only_tj",
+            "role": {
+                "id": 2,
+                "name": "Standard"
+            }
+        }
+    ]
+}
 ```
 
 ## Author

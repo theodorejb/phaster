@@ -342,7 +342,16 @@ abstract class Entities
                 $prop = $aliasMap[$colName];
 
                 if ($prop->nullGroup && $value === null) {
-                    $nullParents[] = $prop;
+                    // only add if there isn't a higher-level null parent
+                    $parent = '';
+
+                    foreach ($prop->parents as $parent) {
+                        if (isset($nullParents[$parent])) {
+                            continue 2;
+                        }
+                    }
+
+                    $nullParents[$parent] = $prop;
                     continue;
                 } elseif ($prop->noOutput) {
                     continue;
@@ -393,17 +402,20 @@ abstract class Entities
     {
         /** @var Prop[] $fieldProps */
         $fieldProps = [];
+        $dependedOn = [];
 
         if ($fields === []) {
             // select all default fields
             foreach ($propMap as $prop => $data) {
                 if ($data->isDefault) {
                     $fieldProps[$prop] = $data;
+
+                    foreach ($data->dependsOn as $value) {
+                        $dependedOn[$value] = true;
+                    }
                 }
             }
         } else {
-            $dependedOn = [];
-
             foreach ($fields as $field) {
                 /** @var Prop[] $matches */
                 $matches = [];
@@ -435,24 +447,32 @@ abstract class Entities
                 }
             }
 
-            $selectedParents = [];
-
-            foreach ($fieldProps as $data) {
-                if ($data->depth > 1) {
-                    $selectedParents[$data->getParent()] = true;
-                }
-            }
-
             foreach ($propMap as $prop => $data) {
                 if (isset($fieldProps[$prop])) {
                     continue; // already selected
                 }
 
-                if (isset($dependedOn[$prop]) || ($data->nullGroup && isset($selectedParents[$data->getParent()]))) {
-                    $data = clone $data;
-                    $data->noOutput = true;
-                    $fieldProps[$prop] = $data;
+                if ($data->nullGroup) {
+                    // check if any selected field is a child
+                    $parents = $data->parents;
+                    $parent = array_pop($parents);
+                    $length = strlen($parent);
+
+                    foreach ($fieldProps as $field => $val) {
+                        if (substr($field, 0, $length) === $parent) {
+                            $dependedOn[$prop] = true;
+                            break;
+                        }
+                    }
                 }
+            }
+        }
+
+        foreach ($propMap as $prop => $data) {
+            if (!isset($fieldProps[$prop]) && isset($dependedOn[$prop])) {
+                $data = clone $data;
+                $data->noOutput = true;
+                $fieldProps[$prop] = $data;
             }
         }
 
