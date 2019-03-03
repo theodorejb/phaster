@@ -33,6 +33,11 @@ class ModernUsers extends Entities
         ];
     }
 
+    protected function getDefaultSort(): array
+    {
+        return ['id' => 'desc'];
+    }
+
     protected function getBaseQuery(QueryOptions $options): string
     {
         return "SELECT {$options->getColumns()}

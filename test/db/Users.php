@@ -6,18 +6,21 @@ namespace theodorejb\Phaster;
 
 class Users extends Entities
 {
-    protected function getIdColumn(): string
-    {
-        return 'user_id';
-    }
-
     protected function getMap(): array
     {
         return [
+            'id' => 'user_id',
             'name' => 'name',
             'birthday' => 'dob',
             'weight' => 'weight',
             'isDisabled' => 'isDisabled',
+        ];
+    }
+
+    protected function getPropMap(): array
+    {
+        return [
+            'isDisabled' => ['type' => 'bool'],
         ];
     }
 
@@ -26,23 +29,6 @@ class Users extends Entities
         return [
             'isDisabled' => false,
         ];
-    }
-
-    protected function rowsToJson(\Generator $rows): array
-    {
-        $users = [];
-
-        foreach ($rows as $row) {
-            $users[] = [
-                'id' => $row['user_id'],
-                'name' => $row['name'],
-                'birthday' => $row['dob'],
-                'weight' => $row['weight'],
-                'isDisabled' => (bool)$row['isDisabled'],
-            ];
-        }
-
-        return $users;
     }
 
     protected function getDuplicateError(): string

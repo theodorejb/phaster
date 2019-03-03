@@ -6,7 +6,6 @@ namespace theodorejb\Phaster;
 
 use PeachySQL\{Mysql, PeachySql, SqlServer};
 use PHPUnit\Framework\TestCase;
-use Teapot\HttpException;
 
 class EntitiesDbTest extends TestCase
 {
@@ -292,12 +291,8 @@ class EntitiesDbTest extends TestCase
 
         $this->assertSame($expected, $actual);
 
-        try {
-            $entities->getEntities([], [], 0, 0, ['name']);
-            $this->fail('Failed to throw exception for invalid fields usage');
-        } catch (HttpException $e) {
-            $this->assertSame('fields parameter is not supported for this endpoint', $e->getMessage());
-        }
+        $actual = $entities->getEntities(['id' => $ids[4]], [], 0, 0, ['name']);
+        $this->assertSame([['name' => 'Legacy user 5']], $actual);
     }
 
     /**
@@ -323,13 +318,6 @@ class EntitiesDbTest extends TestCase
 
         $expected = [
             [
-                'id' => $ids[2],
-                'name' => 'Modern user 3',
-                'isDisabled' => false,
-                'weight' => 30.0,
-                'thing' => null,
-            ],
-            [
                 'id' => $ids[3],
                 'name' => 'Modern user 4',
                 'isDisabled' => false,
@@ -337,6 +325,13 @@ class EntitiesDbTest extends TestCase
                 'thing' => [
                     'uid' => $ids[3],
                 ],
+            ],
+            [
+                'id' => $ids[2],
+                'name' => 'Modern user 3',
+                'isDisabled' => false,
+                'weight' => 30.0,
+                'thing' => null,
             ],
         ];
 

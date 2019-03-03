@@ -21,25 +21,19 @@ abstract class Entities
     private $idColumn;
     private $fullPropMap;
     private $map;
-    private $isModern;
 
     public function __construct(PeachySql $db)
     {
         $this->db = $db;
-        $this->isModern = ($this->rowsToJson(self::emptyGenerator()) === ['unused' => true]);
         $rawPropMap = array_replace_recursive(self::selectMapToPropMap($this->getSelectMap()), $this->getPropMap());
         $propMap = self::rawPropMapToPropMap($rawPropMap);
         $map = $this->getMap();
 
-        if (isset($propMap[$this->idField])) {
-            $this->selectId = $propMap[$this->idField]->col;
-        } elseif ($this->isModern) {
+        if (!isset($propMap[$this->idField])) {
             throw new \Exception('Missing required id property in map');
-        } else {
-            // backwards compatibility
-            $this->selectId = $this->getSelectId();
-            $propMap[$this->idField] = new Prop($this->idField, ['col' => $this->selectId]);
         }
+
+        $this->selectId = $propMap[$this->idField]->col;
 
         if (isset($map[$this->idField])) {
             $this->idColumn = $map[$this->idField];
@@ -70,14 +64,6 @@ abstract class Entities
     }
 
     /**
-     * @deprecated Use getBaseQuery() instead
-     */
-    protected function getBaseSelect(): string
-    {
-        return 'SELECT * FROM ' . $this->getTableName();
-    }
-
-    /**
      * Returns the base select query which can be subsequently filtered, sorted, and paged
      */
     protected function getBaseQuery(QueryOptions $options): string
@@ -87,7 +73,7 @@ abstract class Entities
 
     protected function getDefaultSort(): array
     {
-        return [];
+        return [$this->idField => 'asc'];
     }
 
     /**
@@ -104,22 +90,6 @@ abstract class Entities
     protected function getConstraintError(): string
     {
         return '';
-    }
-
-    /**
-     * @deprecated Set id property in getMap() instead
-     */
-    protected function getIdColumn(): string
-    {
-        return $this->idColumn;
-    }
-
-    /**
-     * @deprecated Set id property in getSelectMap() or getPropMap() instead
-     */
-    protected function getSelectId(): string
-    {
-        return $this->getIdColumn();
     }
 
     /**
@@ -245,7 +215,7 @@ abstract class Entities
         }
     }
 
-    public function getEntityById($id, array $fields = [])
+    public function getEntityById($id, array $fields = []): array
     {
         $entities = $this->getEntitiesByIds([$id], $fields);
 
@@ -274,25 +244,13 @@ abstract class Entities
             $sort = $this->getDefaultSort();
         }
 
-        $baseQuery = $this->getBaseSelect();
+        $queryOptions = new QueryOptions([
+            'filter' => $filter,
+            'sort' => $sort,
+            'fieldProps' => self::getFieldPropMap($fields, $this->fullPropMap),
+        ]);
 
-        if ($this->isModern) {
-            if ($baseQuery !== 'SELECT * FROM ' . $this->getTableName()) {
-                throw new \Exception('getBaseSelect should not be implemented - use getBaseQuery instead');
-            }
-
-            $queryOptions = new QueryOptions([
-                'filter' => $filter,
-                'sort' => $sort,
-                'fieldProps' => self::getFieldPropMap($fields, $this->fullPropMap),
-            ]);
-
-            $baseQuery = $this->getBaseQuery($queryOptions);
-        } elseif ($fields !== []) {
-            throw new HttpException('fields parameter is not supported for this endpoint', StatusCode::BAD_REQUEST);
-        }
-
-        $select = $this->db->selectFrom($baseQuery)
+        $select = $this->db->selectFrom($this->getBaseQuery($queryOptions))
             ->where(self::propertiesToColumns($selectMap, $filter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort));
 
@@ -300,25 +258,7 @@ abstract class Entities
             $select->offset($offset, $limit);
         }
 
-        if ($this->isModern) {
-            return self::mapRows($select->query()->getIterator(), $queryOptions->getFieldProps());
-        }
-
-        return $this->rowsToJson($select->query()->getIterator());
-    }
-
-    /**
-     * Converts an array of selected rows to a JSON serializable array
-     * @deprecated Specify field info using getPropMap() instead
-     */
-    protected function rowsToJson(\Generator $rows): array
-    {
-        return ['unused' => true];
-    }
-
-    private static function emptyGenerator(): \Generator
-    {
-        yield from [];
+        return self::mapRows($select->query()->getIterator(), $queryOptions->getFieldProps());
     }
 
     /**

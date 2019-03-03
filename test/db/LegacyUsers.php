@@ -30,25 +30,10 @@ class LegacyUsers extends Entities
         ];
     }
 
-    protected function getBaseSelect(): string
+    protected function getBaseQuery(QueryOptions $options): string
     {
-        return "SELECT u.user_id, u.name AS username, ut.thing_id
+        return "SELECT {$options->getColumns()}
                 FROM Users u
                 LEFT JOIN UserThings ut ON ut.user_id = u.user_id";
-    }
-
-    protected function rowsToJson(\Generator $rows): array
-    {
-        $users = [];
-
-        foreach ($rows as $row) {
-            $users[] = [
-                'id' => $row['user_id'],
-                'name' => $row['username'],
-                'thing' => ['id' => $row['thing_id']],
-            ];
-        }
-
-        return $users;
     }
 }
