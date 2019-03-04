@@ -97,7 +97,9 @@ class RouteHandler
 
         return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
-            $response->getBody()->write(json_encode(['data' => $instance->getEntityById($args['id'])]));
+            $params = $request->getQueryParams();
+            $fields = isset($params['fields']) ? explode(',', $params['fields']) : [];
+            $response->getBody()->write(json_encode(['data' => $instance->getEntityById($args['id'], $fields)]));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
