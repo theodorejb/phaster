@@ -246,7 +246,7 @@ class EntitiesDbTest extends TestCase
         $actual = array_map(function ($u) {
             unset($u['id']);
             return $u;
-        }, $entities->getEntities(['weight' => ['gt' => 250]], ['weight' => 'desc'], 10, 5));
+        }, $entities->getEntities(['weight' => ['gt' => 250]], [], ['weight' => 'desc'], 10, 5));
 
         $expected = [];
 
@@ -291,7 +291,7 @@ class EntitiesDbTest extends TestCase
 
         $this->assertSame($expected, $actual);
 
-        $actual = $entities->getEntities(['id' => $ids[4]], [], 0, 0, ['name']);
+        $actual = $entities->getEntities(['id' => $ids[4]], ['name']);
         $this->assertSame([['name' => 'Legacy user 5']], $actual);
     }
 

@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] Pressurized Arrangement - 2019-03-22
+### Added
+- `$sort` parameter to `getEntitiesByIds()`.
+
+### Changed
+- By default results are now ordered by the ID field.
+- `$fields` is now the second parameter of `getEntities()` instead of
+the last.
+
+### Removed
+- Previously deprecated `getBaseSelect()`, `getIdColumn()`, `getSelectId()`,
+and `rowsToJson()` methods.
+
 ## [1.2.2] Pasteurized Recognition - 2019-03-04
 ### Fixed
 - `getById` route handler now respects `fields` parameter and only selects
@@ -74,27 +87,10 @@ return early if passed an empty IDs array.
 
 ## [1.0.0] Cosmic Luminary - 2017-03-09
 ### Changed
-- Moved to `theodorejb\Phaster` namespace.
+- Initial stable release
 
-## [1.0.0-rc.1] Approachable Alien - 2017-03-08
-### Added
-- `getConstraintError()` method which allows a friendly error
-message to be specified for constraint violations.
-
-## [1.0.0-beta.2] Uncompromising Discretion - 2017-03-05
-### Added
-- `getDefaultValues()` method to simplify making certain properties
-optional when creating entities.
-
-### Changed
-- Objects can now be bound to column properties when creating/updating
-entities. This makes it possible to set data in SQL Server binary columns.
-- Expanded unit test coverage for Entities instance methods.
-
-## [1.0.0-beta.1] - 2017-02-12
-- Initial pre-release
-
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/theodorejb/phaster/compare/v1.2.2...v2.0.0
 [1.2.2]: https://github.com/theodorejb/phaster/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/theodorejb/phaster/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/theodorejb/phaster/compare/v1.1.1...v1.2.0
@@ -102,7 +98,4 @@ entities. This makes it possible to set data in SQL Server binary columns.
 [1.1.0]: https://github.com/theodorejb/phaster/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/theodorejb/phaster/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/theodorejb/phaster/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/theodorejb/phaster/compare/v1.0.0-rc.1...v1.0.0
-[1.0.0-rc.1]: https://github.com/theodorejb/phaster/compare/v1.0.0-beta.2...v1.0.0-rc.1
-[1.0.0-beta.2]: https://github.com/theodorejb/phaster/compare/v1.0.0-beta.1...v1.0.0-beta.2
-[1.0.0-beta.1]: https://github.com/theodorejb/phaster/tree/v1.0.0-beta.1
+[1.0.0]: https://github.com/theodorejb/phaster/tree/v1.0.0

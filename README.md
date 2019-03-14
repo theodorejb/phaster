@@ -11,12 +11,12 @@ It works well with the Slim Framework, and supports PHP 7.1+.
 
 ## Usage
 
-Create a class extending theodorejb\Phaster\Entities. Implement the `getMap()`
-and `getDefaultSort()` methods. By default, the table name will be inferred
-from the class name, and all mapped columns in this table will be selected.
+Create a class extending `theodorejb\Phaster\Entities` and implement the
+`getMap()` method. By default, the table name will be inferred from the
+class name, and all mapped columns in this table will be selected.
 
 To join other tables and alter output values, implement the `getBaseQuery()`
-and `getPropMap()` methods.  Pass the callable returned by the route handling
+and `getPropMap()` methods. Pass the callable returned by the route handling
 functions to your Slim or other PSR-7 compatible framework.
 
 ```php

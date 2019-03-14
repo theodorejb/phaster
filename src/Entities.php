@@ -226,16 +226,16 @@ abstract class Entities
         return $entities[0];
     }
 
-    public function getEntitiesByIds(array $ids, array $fields = []): array
+    public function getEntitiesByIds(array $ids, array $fields = [], array $sort = []): array
     {
         if (count($ids) === 0) {
             return [];
         }
 
-        return $this->getEntities([$this->idField => $ids], [], 0, 0, $fields);
+        return $this->getEntities([$this->idField => $ids], $fields, $sort);
     }
 
-    public function getEntities(array $filter = [], array $sort = [], int $offset = 0, int $limit = 0, array $fields = []): array
+    public function getEntities(array $filter = [], array $fields = [], array $sort = [], int $offset = 0, int $limit = 0): array
     {
         $filter = $this->processFilter($filter);
         $selectMap = self::propMapToSelectMap($this->fullPropMap);;

@@ -66,7 +66,7 @@ class RouteHandler
             }
 
             $instance = $factory->createEntities($class);
-            $entities = $instance->getEntities($params['q'], $params['sort'], $params['offset'], $checkLimit, $params['fields']);
+            $entities = $instance->getEntities($params['q'], $params['fields'], $params['sort'], $params['offset'], $checkLimit);
 
             if ($checkLimit !== 0) {
                 $resultCount = count($entities);
