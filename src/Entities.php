@@ -135,6 +135,14 @@ abstract class Entities
         return $data;
     }
 
+    /**
+     * Make changes to a row before it is inserted or updated in the database.
+     */
+    protected function processRow(array $row, array $ids): array
+    {
+        return $row;
+    }
+
     public function deleteByIds(array $ids): int
     {
         if (count($ids) === 0) {
@@ -157,6 +165,7 @@ abstract class Entities
     public function updateById($id, array $data): int
     {
         $row = self::propertiesToColumns($this->map, $this->processValues($data, [$id]), true);
+        $row = $this->processRow($row, [$id]);
 
         try {
             return $this->db->updateRows($this->getTableName(), $row, [$this->idColumn => $id]);
@@ -175,6 +184,7 @@ abstract class Entities
         }
 
         $colVals = self::propertiesToColumns($this->map, $this->processValues($mergePatch, $ids));
+        $colVals = $this->processRow($colVals, $ids);
 
         try {
             return $this->db->updateRows($this->getTableName(), $colVals, [$this->idColumn => $ids]);
@@ -192,10 +202,14 @@ abstract class Entities
             return [];
         }
 
-        $rows = array_map(function ($data) {
-            $data = array_replace_recursive($this->getDefaultValues(), $data);
-            return self::propertiesToColumns($this->map, $this->processValues($data, []), true);
-        }, $entities);
+        $defaultValues = $this->getDefaultValues();
+        $rows = [];
+
+        foreach ($entities as $entity) {
+            $data = array_replace_recursive($defaultValues, $entity);
+            $row = self::propertiesToColumns($this->map, $this->processValues($data, []), true);
+            $rows[] = $this->processRow($row, []);
+        }
 
         try {
             return $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->getIds();

@@ -285,6 +285,7 @@ class EntitiesDbTest extends TestCase
             [
                 'id' => $ids[4],
                 'name' => 'Legacy user 5',
+                'birthday' => '2001-03-20',
                 'thing' => ['id' => null],
             ],
         ];

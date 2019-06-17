@@ -26,6 +26,7 @@ class LegacyUsers extends Entities
         return [
             'id' => 'u.user_id',
             'name' => 'u.name',
+            'birthday' => 'u.dob',
             'thing' => ['id' => 'ut.thing_id'],
         ];
     }
@@ -35,5 +36,14 @@ class LegacyUsers extends Entities
         return "SELECT {$options->getColumns()}
                 FROM Users u
                 LEFT JOIN UserThings ut ON ut.user_id = u.user_id";
+    }
+
+    protected function processRow(array $row, array $ids): array
+    {
+        if (count($ids) === 0) {
+            $row['dob'] = '2001-03-20';
+        }
+
+        return $row;
     }
 }
