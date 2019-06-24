@@ -132,11 +132,8 @@ class RouteHandler
             $instance = $factory->createEntities($class);
             $affected = $instance->updateById($args['id'], $request->getParsedBody());
 
-            if ($affected === 0) {
-                throw new HttpException('Invalid ID', StatusCode::NOT_FOUND);
-            }
-
-            return $response->withStatus(StatusCode::NO_CONTENT);
+            $response->getBody()->write(json_encode(['affected' => $affected]));
+            return $response->withHeader('Content-Type', 'application/json');
         };
     }
 
@@ -148,11 +145,8 @@ class RouteHandler
             $instance = $factory->createEntities($class);
             $affected = $instance->patchByIds(explode(',', $args['id']), $request->getParsedBody());
 
-            if ($affected === 0) {
-                throw new HttpException('Invalid ID', StatusCode::NOT_FOUND);
-            }
-
-            return $response->withStatus(StatusCode::NO_CONTENT);
+            $response->getBody()->write(json_encode(['affected' => $affected]));
+            return $response->withHeader('Content-Type', 'application/json');
         };
     }
 

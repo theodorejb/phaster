@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `processRow` method to alter a row directly before it is inserted or
 updated. Useful for setting columns that aren't in the property map.
 
+### Changed
+- PUT and PATCH requests now return the number of affected rows, and
+no longer produce an error if no rows were affected (e.g. if the
+request didn't change the value of any property).
+
 ## [2.0.0] Pressurized Arrangement - 2019-03-22
 ### Added
 - `$sort` parameter to `getEntitiesByIds()`.
