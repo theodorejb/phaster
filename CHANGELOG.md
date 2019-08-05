@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.1.0] Benevolent Mystique - 2019-08-05
 ### Added
 - `processRow` method to alter a row directly before it is inserted or
 updated. Useful for setting columns that aren't in the property map.
@@ -13,6 +15,7 @@ updated. Useful for setting columns that aren't in the property map.
 - PUT and PATCH requests now return the number of affected rows, and
 no longer produce an error if no rows were affected (e.g. if the
 request didn't change the value of any property).
+- Excluded additional test files from production bundle.
 
 ## [2.0.0] Pressurized Arrangement - 2019-03-22
 ### Added
@@ -97,7 +100,8 @@ return early if passed an empty IDs array.
 ### Changed
 - Initial stable release
 
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/theodorejb/phaster/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/theodorejb/phaster/compare/v1.2.2...v2.0.0
 [1.2.2]: https://github.com/theodorejb/phaster/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/theodorejb/phaster/compare/v1.2.0...v1.2.1
