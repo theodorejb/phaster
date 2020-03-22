@@ -279,7 +279,7 @@ class EntitiesDbTest extends TestCase
         }
 
         $ids = $entities->addEntities($users);
-        $actual = $entities->getEntities(['id' => $ids[4]]);
+        $actual = $entities->getEntities(['id' => [$ids[3], $ids[4]], 'customFilter' => $ids[3]]);
 
         $expected = [
             [

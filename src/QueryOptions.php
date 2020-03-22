@@ -7,6 +7,7 @@ namespace theodorejb\Phaster;
 class QueryOptions
 {
     private $filter;
+    private $originalFilter;
     private $sort;
     /** @var Prop[] */
     private $fieldProps;
@@ -14,6 +15,7 @@ class QueryOptions
     public function __construct(array $query)
     {
         $this->filter = $query['filter'];
+        $this->originalFilter = $query['originalFilter'];
         $this->sort = $query['sort'];
         $this->fieldProps = $query['fieldProps'];
     }
@@ -21,6 +23,11 @@ class QueryOptions
     public function getFilter(): array
     {
         return $this->filter;
+    }
+
+    public function getOriginalFilter(): array
+    {
+        return $this->originalFilter;
     }
 
     public function getSort(): array

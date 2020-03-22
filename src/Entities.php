@@ -251,7 +251,7 @@ abstract class Entities
 
     public function getEntities(array $filter = [], array $fields = [], array $sort = [], int $offset = 0, int $limit = 0): array
     {
-        $filter = $this->processFilter($filter);
+        $processedFilter = $this->processFilter($filter);
         $selectMap = self::propMapToSelectMap($this->fullPropMap);;
 
         if ($sort === []) {
@@ -259,13 +259,14 @@ abstract class Entities
         }
 
         $queryOptions = new QueryOptions([
-            'filter' => $filter,
+            'filter' => $processedFilter,
+            'originalFilter' => $filter,
             'sort' => $sort,
             'fieldProps' => self::getFieldPropMap($fields, $this->fullPropMap),
         ]);
 
         $select = $this->db->selectFrom($this->getBaseQuery($queryOptions))
-            ->where(self::propertiesToColumns($selectMap, $filter))
+            ->where(self::propertiesToColumns($selectMap, $processedFilter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort));
 
         if ($limit !== 0) {

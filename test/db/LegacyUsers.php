@@ -31,11 +31,28 @@ class LegacyUsers extends Entities
         ];
     }
 
+    protected function processFilter(array $filter): array
+    {
+        unset($filter['customFilter']);
+        return $filter;
+    }
+
     protected function getBaseQuery(QueryOptions $options): string
     {
-        return "SELECT {$options->getColumns()}
-                FROM Users u
-                LEFT JOIN UserThings ut ON ut.user_id = u.user_id";
+        $originalFilter = $options->getOriginalFilter();
+
+        if (isset($originalFilter['customFilter'])) {
+            $customFilter = 'WHERE u1.user_id <> ' . $originalFilter['customFilter'];
+        } else {
+            $customFilter = '';
+        }
+
+        return "
+            SELECT {$options->getColumns()}
+            FROM (
+                SELECT * FROM Users u1 $customFilter
+            ) u
+            LEFT JOIN UserThings ut ON ut.user_id = u.user_id";
     }
 
     protected function processRow(array $row, array $ids): array

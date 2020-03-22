@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] Primordial Refinement - 2020-03-22
+### Added
+- `getOriginalFilter` method to `QueryOptions` for retrieving the
+unprocessed filter array.
+
 ## [2.1.0] Benevolent Mystique - 2019-08-05
 ### Added
 - `processRow` method to alter a row directly before it is inserted or
@@ -100,7 +105,8 @@ return early if passed an empty IDs array.
 ### Changed
 - Initial stable release
 
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/theodorejb/phaster/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/theodorejb/phaster/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/theodorejb/phaster/compare/v1.2.2...v2.0.0
 [1.2.2]: https://github.com/theodorejb/phaster/compare/v1.2.1...v1.2.2
