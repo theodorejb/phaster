@@ -15,12 +15,12 @@ abstract class Entities
      */
     abstract protected function getMap(): array;
 
-    protected $db;
-    protected $idField = 'id';
-    private $selectId;
-    private $idColumn;
-    private $fullPropMap;
-    private $map;
+    protected PeachySql $db;
+    protected string $idField = 'id';
+    private string $selectId;
+    private string $idColumn;
+    private array $fullPropMap;
+    private array $map;
 
     public function __construct(PeachySql $db)
     {
@@ -162,6 +162,9 @@ abstract class Entities
         }
     }
 
+    /**
+     * @param int|string $id
+     */
     public function updateById($id, array $data): int
     {
         $row = self::propertiesToColumns($this->map, $this->processValues($data, [$id]), true);
@@ -229,6 +232,9 @@ abstract class Entities
         }
     }
 
+    /**
+     * @param int|string $id
+     */
     public function getEntityById($id, array $fields = []): array
     {
         $entities = $this->getEntitiesByIds([$id], $fields);
@@ -277,7 +283,7 @@ abstract class Entities
     }
 
     /**
-     * @param Prop[] $aliasMap
+     * @param Prop[] $fieldProps
      */
     public static function mapRows(\Generator $rows, array $fieldProps): array
     {
@@ -320,6 +326,7 @@ abstract class Entities
                     $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
                 }
 
+                /** @psalm-suppress EmptyArrayAccess */
                 $ref = &$entity[$prop->map[0]];
 
                 for ($i = 1; $i < $prop->depth; $i++) {
@@ -332,6 +339,7 @@ abstract class Entities
 
             foreach ($nullParents as $prop) {
                 $depth = $prop->depth - 1;
+                /** @psalm-suppress EmptyArrayAccess */
                 $ref = &$entity[$prop->map[0]];
 
                 for ($i = 1; $i < $depth; $i++) {
@@ -472,6 +480,7 @@ abstract class Entities
         $selectMap = [];
 
         foreach ($map as $prop) {
+            /** @psalm-suppress EmptyArrayAccess */
             $ref = &$selectMap[$prop->map[0]];
 
             for ($i = 1; $i < $prop->depth; $i++) {

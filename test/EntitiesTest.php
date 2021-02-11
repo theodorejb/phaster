@@ -9,7 +9,7 @@ use Teapot\HttpException;
 
 class EntitiesTest extends TestCase
 {
-    private $propertyMap = [
+    private array $propertyMap = [
         'name' => 'UserName',
         'client' => [
             'id' => 'ClientID',
@@ -24,7 +24,7 @@ class EntitiesTest extends TestCase
         ],
     ];
 
-    public function testSelectMapToPropMap()
+    public function testSelectMapToPropMap(): void
     {
         $expected = [
             'name' => ['col' => 'UserName'],
@@ -38,7 +38,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::selectMapToPropMap($this->propertyMap));
     }
 
-    public function testPropMapToSelectMap()
+    public function testPropMapToSelectMap(): void
     {
         $propMap = [
             'name' => ['col' => 'UserName'],
@@ -53,7 +53,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($this->propertyMap, Entities::propMapToSelectMap($propMap));
     }
 
-    public function testPropMapToAliasMap()
+    public function testPropMapToAliasMap(): void
     {
         $utc = new \DateTimeZone('UTC');
 
@@ -76,11 +76,9 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::propMapToAliasMap($propMap));
     }
 
-    public function testMapRows()
+    public function testMapRows(): void
     {
-        $usernameMapper = function ($row) {
-            return ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
-        };
+        $usernameMapper = fn(array $row): string => ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
 
         $rawPropMap = [
             'id' => ['col' => 'UserID'],
@@ -92,7 +90,7 @@ class EntitiesTest extends TestCase
         ];
 
         // test mapping all fields with nullable client.type group
-        $generator = function () {
+        $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'Disabled' => 0, 'TypeID' => 2, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
             yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'Disabled' => 1, 'TypeID' => null, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
             yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'Disabled' => null, 'TypeID' => null, 'DateCreatedUTC' => null];
@@ -108,7 +106,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::mapRows($generator(), $propMap));
 
         // test mapping non-client fields
-        $generator = function () {
+        $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'DateCreatedUTC' => '2019-02-18 09:01:35'];
             yield ['UserID' => 42, 'UserName' => 'jsmith', 'DateCreatedUTC' => '2018-05-20 23:22:40'];
             yield ['UserID' => 1, 'UserName' => 'test',  'DateCreatedUTC' => null];
@@ -124,7 +122,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
 
         // test nullable client group when selecting client.isDisabled child property
-        $generator = function () {
+        $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'Disabled' => 0, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
             yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'Disabled' => 1, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
             yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'Disabled' => null, 'DateCreatedUTC' => null];
@@ -142,7 +140,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
 
         // test nullable client group when selecting client.type.id grandchild property
-        $generator = function () {
+        $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'TypeID' => 2];
             yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'TypeID' => null];
             yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'TypeID' => null];
@@ -158,7 +156,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::mapRows($generator(), $fieldProps));
     }
 
-    public function testGetFieldPropMap()
+    public function testGetFieldPropMap(): void
     {
         $rawPropMap = [
             'username' => ['col' => 'UserName', 'notDefault' => true],
@@ -200,7 +198,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::getFieldPropMap(['client', 'group.type'], $propMap));
 
         // test selection when dependant field is in a nullable group
-        $valueGetter = function ($row) { return ''; };
+        $valueGetter = fn(array $row): string => '';
         $rawPropMap['groupName']['dependsOn'] = ['client.name'];
         $rawPropMap['groupName']['getValue'] = $valueGetter;
         $propMap = Entities::rawPropMapToPropMap($rawPropMap);
@@ -250,7 +248,7 @@ class EntitiesTest extends TestCase
         $this->assertTrue($actual['username']->noOutput);
     }
 
-    public function testRawPropMapToPropMap()
+    public function testRawPropMapToPropMap(): void
     {
         $propMap = [
             'username' => ['alias' => 'Name'],
@@ -306,7 +304,7 @@ class EntitiesTest extends TestCase
             $this->assertSame("dependsOn key on isBillable property cannot be used without getValue function", $e->getMessage());
         }
 
-        $propMap['isBillable']['getValue'] = function ($row) { return ''; };
+        $propMap['isBillable']['getValue'] = fn(array $row): string => '';
         $invalidDependsOnValues = ['isBillable', 'notAProp'];
 
         foreach ($invalidDependsOnValues as $dependsOn) {
@@ -321,7 +319,7 @@ class EntitiesTest extends TestCase
         }
     }
 
-    public function testPropertiesToColumns()
+    public function testPropertiesToColumns(): void
     {
         $q = [
             'name' => 'testUser',
@@ -381,7 +379,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($binaryExpectation, Entities::propertiesToColumns($binaryMap, $binaryObj, true));
     }
 
-    public function testInvalidMap()
+    public function testInvalidMap(): void
     {
         $invalidTypes = [null, true, false, 10, 1.5, new \stdClass()];
 
@@ -416,7 +414,7 @@ class EntitiesTest extends TestCase
         }
     }
 
-    public function testInvalidPropertiesToColumns()
+    public function testInvalidPropertiesToColumns(): void
     {
         try {
             $badQ = [
@@ -448,7 +446,7 @@ class EntitiesTest extends TestCase
         }
     }
 
-    public function testRequireFullMap()
+    public function testRequireFullMap(): void
     {
         $map =  [
             'name' => 'UserName',

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2021-02-22
+### Changed
+- Specified additional types and enabled Psalm static analysis.
+- PHP 7.4+ is now required.
+
 ## [2.2.0] Primordial Refinement - 2020-03-22
 ### Added
 - `getOriginalFilter` method to `QueryOptions` for retrieving the
@@ -105,7 +110,8 @@ return early if passed an empty IDs array.
 ### Changed
 - Initial stable release
 
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.2.1...HEAD
+[2.2.1]: https://github.com/theodorejb/phaster/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/theodorejb/phaster/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/theodorejb/phaster/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/theodorejb/phaster/compare/v1.2.2...v2.0.0

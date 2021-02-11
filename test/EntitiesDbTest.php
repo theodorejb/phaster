@@ -6,25 +6,26 @@ namespace theodorejb\Phaster;
 
 use PeachySQL\{Mysql, PeachySql, SqlServer};
 use PHPUnit\Framework\TestCase;
+use theodorejb\Phaster\Test\{DbConnector, Users, LegacyUsers, ModernUsers};
 
 class EntitiesDbTest extends TestCase
 {
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
-        TestDbConnector::deleteTestTables();
+        DbConnector::deleteTestTables();
     }
 
     public function dbProvider(): array
     {
-        $config = TestDbConnector::getConfig();
+        $config = DbConnector::getConfig();
         $databases = [];
 
         if ($config['testWith']['mysql']) {
-            $databases[] = [new Mysql(TestDbConnector::getMysqlConn())];
+            $databases[] = [new Mysql(DbConnector::getMysqlConn())];
         }
 
         if ($config['testWith']['sqlsrv']) {
-            $databases[] = [new SqlServer(TestDbConnector::getSqlsrvConn())];
+            $databases[] = [new SqlServer(DbConnector::getSqlsrvConn())];
         }
 
         return $databases;
@@ -32,26 +33,26 @@ class EntitiesDbTest extends TestCase
 
     public function entitiesProvider(): array
     {
-        $mapper = function (array $db) { return [new Users($db[0])]; };
+        $mapper = fn(array $db): array => [new Users($db[0])];
         return array_map($mapper, $this->dbProvider());
     }
 
     public function legacyUsersProvider(): array
     {
-        $mapper = function (array $db) { return [new LegacyUsers($db[0])]; };
+        $mapper = fn(array $db): array => [new LegacyUsers($db[0])];
         return array_map($mapper, $this->dbProvider());
     }
 
     public function modernUsersProvider(): array
     {
-        $mapper = function (array $db) { return [new ModernUsers($db[0]), $db[0]]; };
+        $mapper = fn(array $db): array => [new ModernUsers($db[0]), $db[0]];
         return array_map($mapper, $this->dbProvider());
     }
 
     /**
      * @dataProvider entitiesProvider
      */
-    public function testAddEntities(Entities $entities)
+    public function testAddEntities(Entities $entities): void
     {
         try {
             $entities->addEntities([[
@@ -90,7 +91,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testUpdateById(Entities $entities)
+    public function testUpdateById(Entities $entities): void
     {
         try {
             // optional properties should still be required when replacing an entity
@@ -129,7 +130,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testPatchByIds(Entities $entities)
+    public function testPatchByIds(Entities $entities): void
     {
         $users = [
             [
@@ -169,7 +170,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testEmptyQueries(Entities $entities)
+    public function testEmptyQueries(Entities $entities): void
     {
         $ids = $entities->addEntities([]);
         $this->assertSame([], $entities->getEntitiesByIds($ids));
@@ -180,7 +181,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testGetDuplicateError(Entities $entities)
+    public function testGetDuplicateError(Entities $entities): void
     {
         $users = [
             [
@@ -206,7 +207,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider dbProvider
      */
-    public function testGetConstraintError(PeachySql $db)
+    public function testGetConstraintError(PeachySql $db): void
     {
         $user = [
             'name' => 'Some Name',
@@ -229,7 +230,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testGetEntities(Entities $entities)
+    public function testGetEntities(Entities $entities): void
     {
         $users = [];
 
@@ -243,7 +244,7 @@ class EntitiesDbTest extends TestCase
 
         $entities->addEntities($users);
 
-        $actual = array_map(function ($u) {
+        $actual = array_map(function (array $u): array {
             unset($u['id']);
             return $u;
         }, $entities->getEntities(['weight' => ['gt' => 250]], [], ['weight' => 'desc'], 10, 5));
@@ -265,7 +266,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider legacyUsersProvider
      */
-    public function testLegacyUsers(Entities $entities)
+    public function testLegacyUsers(Entities $entities): void
     {
         $users = [];
 
@@ -299,7 +300,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider modernUsersProvider
      */
-    public function testModernUsers(Entities $entities, PeachySql $db)
+    public function testModernUsers(Entities $entities, PeachySql $db): void
     {
         $users = [];
 

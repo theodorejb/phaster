@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster;
+namespace theodorejb\Phaster\Test;
+
+use theodorejb\Phaster\Entities;
 
 class Users extends Entities
 {

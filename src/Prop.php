@@ -6,35 +6,28 @@ namespace theodorejb\Phaster;
 
 class Prop
 {
-    /** @var string */
-    public $col;
-
-    /** @var string */
-    public $alias;
+    public string $col;
+    public string $alias = '';
 
     /** @var callable | null */
     public $getValue;
-
-    /** @var string | null */
-    public $type;
+    public ?string $type = null;
 
     /** @var \DateTimeZone | null | false */
     public $timeZone = false;
 
     /** @var string[] */
-    public $dependsOn = [];
-    public $nullGroup = false;
-    public $isDefault = true;
-    public $noOutput = false;
+    public array $dependsOn = [];
+    public bool $nullGroup = false;
+    public bool $isDefault = true;
+    public bool $noOutput = false;
 
     /** @var string[] */
-    public $map;
-
-    /** @var int */
-    public $depth;
+    public array $map;
+    public int $depth;
 
     /** @var string[] */
-    public $parents = [];
+    public array $parents = [];
 
     public function __construct(string $prop, array $options)
     {

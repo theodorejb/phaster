@@ -2,19 +2,16 @@
 
 declare(strict_types=1);
 
-require 'vendor/autoload.php';
+use theodorejb\Phaster\Test\DbConnector;
 
-// not autoloaded by Composer
-require 'test/db/Users.php';
-require 'test/db/LegacyUsers.php';
-require 'test/db/ModernUsers.php';
-require 'test/db/TestDbConnector.php';
+require 'vendor/autoload.php';
 
 $config = require 'test/config.php';
 
 if (is_readable('test/config.user.php')) {
+    /** @psalm-suppress MissingFile */
     $userConfig = require 'test/config.user.php';
     $config = array_replace_recursive($config, $userConfig);
 }
 
-theodorejb\Phaster\TestDbConnector::setConfig($config);
+DbConnector::setConfig($config);

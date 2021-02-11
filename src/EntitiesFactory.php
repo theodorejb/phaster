@@ -6,5 +6,8 @@ namespace theodorejb\Phaster;
 
 interface EntitiesFactory
 {
-    public function createEntities($class): Entities;
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function createEntities(string $class): Entities;
 }

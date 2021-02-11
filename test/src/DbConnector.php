@@ -2,20 +2,17 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster;
+namespace theodorejb\Phaster\Test;
 
 use Exception;
 use mysqli;
 
-class TestDbConnector
+class DbConnector
 {
-    /**
-     * @var mysqli
-     */
-    private static $mysqlConn;
+    private static ?mysqli $mysqlConn = null;
 
     /**
-     * @var resource
+     * @var resource|null
      */
     private static $sqlsrvConn;
 
@@ -25,7 +22,7 @@ class TestDbConnector
      */
     private static $config;
 
-    public static function setConfig(array $config)
+    public static function setConfig(array $config): void
     {
         self::$config = $config;
     }
@@ -39,7 +36,15 @@ class TestDbConnector
     {
         if (!self::$mysqlConn) {
             $mysql = self::$config['db']['mysql'];
-            self::$mysqlConn = new mysqli($mysql['host'], $mysql['username'], $mysql['password'], $mysql['database']);
+            $dbPort = getenv('DB_PORT');
+
+            if ($dbPort === false) {
+                $dbPort = 3306;
+            } else {
+                $dbPort = (int) $dbPort;
+            }
+
+            self::$mysqlConn = new mysqli($mysql['host'], $mysql['username'], $mysql['password'], $mysql['database'], $dbPort);
 
             if (self::$mysqlConn->connect_errno) {
                 throw new Exception('Failed to connect to MySQL: (' . self::$mysqlConn->connect_errno . ') ' . self::$mysqlConn->connect_error);
@@ -51,6 +56,9 @@ class TestDbConnector
         return self::$mysqlConn;
     }
 
+    /**
+     * @return resource
+     */
     public static function getSqlsrvConn()
     {
         if (!self::$sqlsrvConn) {
@@ -66,7 +74,10 @@ class TestDbConnector
         return self::$sqlsrvConn;
     }
 
-    private static function createSqlServerTestTable($conn)
+    /**
+     * @param resource $conn
+     */
+    private static function createSqlServerTestTable($conn): void
     {
         $sql = 'CREATE TABLE Users (
                     user_id INT PRIMARY KEY IDENTITY NOT NULL,
@@ -98,7 +109,7 @@ class TestDbConnector
         }
     }
 
-    private static function createMysqlTestTable(mysqli $conn)
+    private static function createMysqlTestTable(mysqli $conn): void
     {
         $sql = 'CREATE TABLE Users (
                     user_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -131,7 +142,7 @@ class TestDbConnector
         }
     }
 
-    public static function deleteTestTables()
+    public static function deleteTestTables(): void
     {
         $sql = [
             'DROP TABLE UserThings',

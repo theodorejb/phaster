@@ -9,14 +9,17 @@ use Teapot\{HttpException, StatusCode};
 
 class RouteHandler
 {
-    private $entitiesFactory;
+    private EntitiesFactory $entitiesFactory;
 
     public function __construct(EntitiesFactory $factory)
     {
         $this->entitiesFactory = $factory;
     }
 
-    public function search($class, int $defaultLimit = 25, int $maxLimit = 1000): callable
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function search(string $class, int $defaultLimit = 25, int $maxLimit = 1000): callable
     {
         $factory = $this->entitiesFactory;
 
@@ -91,7 +94,10 @@ class RouteHandler
         };
     }
 
-    public function getById($class): callable
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function getById(string $class): callable
     {
         $factory = $this->entitiesFactory;
 
@@ -104,7 +110,10 @@ class RouteHandler
         };
     }
 
-    public function insert($class): callable
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function insert(string $class): callable
     {
         $factory = $this->entitiesFactory;
 
@@ -124,33 +133,46 @@ class RouteHandler
         };
     }
 
-    public function update($class): callable
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function update(string $class): callable
     {
         $factory = $this->entitiesFactory;
 
         return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
-            $affected = $instance->updateById($args['id'], $request->getParsedBody());
+            /** @var array $body */
+            $body = $request->getParsedBody();
+            $affected = $instance->updateById($args['id'], $body);
 
             $response->getBody()->write(json_encode(['affected' => $affected]));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
 
-    public function patch($class): callable
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function patch(string $class): callable
     {
         $factory = $this->entitiesFactory;
 
         return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
-            $affected = $instance->patchByIds(explode(',', $args['id']), $request->getParsedBody());
+            /** @var array $body */
+            $body = $request->getParsedBody();
+            $affected = $instance->patchByIds(explode(',', $args['id']), $body);
 
             $response->getBody()->write(json_encode(['affected' => $affected]));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
 
-    public function delete($class): callable
+    /**
+     * @param class-string<Entities> $class
+     */
+    public function delete(string $class): callable
     {
         $factory = $this->entitiesFactory;
 
