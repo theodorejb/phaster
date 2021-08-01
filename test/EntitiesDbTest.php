@@ -20,11 +20,11 @@ class EntitiesDbTest extends TestCase
         $config = DbConnector::getConfig();
         $databases = [];
 
-        if ($config['testWith']['mysql']) {
+        if ($config->testMysql()) {
             $databases[] = [new Mysql(DbConnector::getMysqlConn())];
         }
 
-        if ($config['testWith']['sqlsrv']) {
+        if ($config->testSqlsrv()) {
             $databases[] = [new SqlServer(DbConnector::getSqlsrvConn())];
         }
 

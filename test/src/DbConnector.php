@@ -9,6 +9,7 @@ use mysqli;
 
 class DbConnector
 {
+    private static Config $config;
     private static ?mysqli $mysqlConn = null;
 
     /**
@@ -16,18 +17,12 @@ class DbConnector
      */
     private static $sqlsrvConn;
 
-    /**
-     * DB config settings
-     * @var array
-     */
-    private static $config;
-
-    public static function setConfig(array $config): void
+    public static function setConfig(Config $config): void
     {
         self::$config = $config;
     }
 
-    public static function getConfig(): array
+    public static function getConfig(): Config
     {
         return self::$config;
     }
@@ -35,7 +30,7 @@ class DbConnector
     public static function getMysqlConn(): mysqli
     {
         if (!self::$mysqlConn) {
-            $mysql = self::$config['db']['mysql'];
+            $c = self::getConfig();
             $dbPort = getenv('DB_PORT');
 
             if ($dbPort === false) {
@@ -44,7 +39,7 @@ class DbConnector
                 $dbPort = (int) $dbPort;
             }
 
-            self::$mysqlConn = new mysqli($mysql['host'], $mysql['username'], $mysql['password'], $mysql['database'], $dbPort);
+            self::$mysqlConn = new mysqli($c->getMysqlHost(), $c->getMysqlUser(), $c->getMysqlPassword(), $c->getMysqlDatabase(), $dbPort);
 
             if (self::$mysqlConn->connect_errno) {
                 throw new Exception('Failed to connect to MySQL: (' . self::$mysqlConn->connect_errno . ') ' . self::$mysqlConn->connect_error);
@@ -62,8 +57,9 @@ class DbConnector
     public static function getSqlsrvConn()
     {
         if (!self::$sqlsrvConn) {
-            $connInfo = self::$config['db']['sqlsrv']['connectionInfo'];
-            self::$sqlsrvConn = sqlsrv_connect(self::$config['db']['sqlsrv']['serverName'], $connInfo);
+            $c = self::getConfig();
+            self::$sqlsrvConn = sqlsrv_connect($c->getSqlsrvServer(), $c->getSqlsrvConnInfo());
+
             if (!self::$sqlsrvConn) {
                 throw new Exception('Failed to connect to SQL server: ' . print_r(sqlsrv_errors(), true));
             }
