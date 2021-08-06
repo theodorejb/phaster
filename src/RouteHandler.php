@@ -44,6 +44,10 @@ class RouteHandler
 
                     $params[$param] = $value;
                 } elseif ($param === 'fields') {
+                    if (!is_string($value)) {
+                        throw new HttpException('fields parameter must be a string');
+                    }
+
                     $params[$param] = explode(',', $value);
                 } elseif (filter_var($value, FILTER_VALIDATE_INT) === false) {
                     throw new HttpException("Parameter '{$param}' must be an integer", StatusCode::BAD_REQUEST);
@@ -103,6 +107,12 @@ class RouteHandler
 
         return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
+
+            if (!isset($args['id']) || !is_string($args['id'])) {
+                throw new HttpException('Missing expected id argument');
+            }
+
+            /** @var array<string, string> $params */
             $params = $request->getQueryParams();
             $fields = isset($params['fields']) ? explode(',', $params['fields']) : [];
             $response->getBody()->write(json_encode(['data' => $instance->getEntityById($args['id'], $fields)]));
@@ -121,8 +131,13 @@ class RouteHandler
             $instance = $factory->createEntities($class);
             $data = $request->getParsedBody();
 
+            if (!is_array($data)) {
+                throw new HttpException('Failed to parse body');
+            }
+
             if (isset($data[0])) {
                 // bulk insert
+                /** @var list<array> $data */
                 $body = ['ids' => $instance->addEntities($data)];
             } else {
                 $body = ['id' => $instance->addEntities([$data])[0]];
@@ -142,10 +157,17 @@ class RouteHandler
 
         return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
-            /** @var array $body */
             $body = $request->getParsedBody();
-            $affected = $instance->updateById($args['id'], $body);
 
+            if (!is_array($body)) {
+                throw new HttpException('Failed to parse body');
+            }
+
+            if (!isset($args['id']) || !is_string($args['id'])) {
+                throw new HttpException('Missing expected id argument');
+            }
+
+            $affected = $instance->updateById($args['id'], $body);
             $response->getBody()->write(json_encode(['affected' => $affected]));
             return $response->withHeader('Content-Type', 'application/json');
         };
@@ -160,10 +182,17 @@ class RouteHandler
 
         return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
-            /** @var array $body */
             $body = $request->getParsedBody();
-            $affected = $instance->patchByIds(explode(',', $args['id']), $body);
 
+            if (!is_array($body)) {
+                throw new HttpException('Failed to parse body');
+            }
+
+            if (!isset($args['id']) || !is_string($args['id'])) {
+                throw new HttpException('Missing expected id argument');
+            }
+
+            $affected = $instance->patchByIds(explode(',', $args['id']), $body);
             $response->getBody()->write(json_encode(['affected' => $affected]));
             return $response->withHeader('Content-Type', 'application/json');
         };
@@ -176,8 +205,13 @@ class RouteHandler
     {
         $factory = $this->entitiesFactory;
 
-        return function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
+        return function (ServerRequestInterface $_req, ResponseInterface $response, array $args) use ($class, $factory): ResponseInterface {
             $instance = $factory->createEntities($class);
+
+            if (!isset($args['id']) || !is_string($args['id'])) {
+                throw new HttpException('Missing expected id argument');
+            }
+
             $affected = $instance->deleteByIds(explode(',', $args['id']));
 
             if ($affected === 0) {

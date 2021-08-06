@@ -43,7 +43,7 @@ class LegacyUsers extends Entities
     {
         $originalFilter = $options->getOriginalFilter();
 
-        if (isset($originalFilter['customFilter'])) {
+        if (isset($originalFilter['customFilter']) && is_int($originalFilter['customFilter'])) {
             $customFilter = 'WHERE u1.user_id <> ' . $originalFilter['customFilter'];
         } else {
             $customFilter = '';

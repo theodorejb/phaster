@@ -78,6 +78,7 @@ class EntitiesTest extends TestCase
 
     public function testMapRows(): void
     {
+        /** @psalm-suppress MixedInferredReturnType, MixedReturnStatement */
         $usernameMapper = fn(array $row): string => ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
 
         $rawPropMap = [
@@ -198,7 +199,7 @@ class EntitiesTest extends TestCase
         $this->assertSame($expected, Entities::getFieldPropMap(['client', 'group.type'], $propMap));
 
         // test selection when dependant field is in a nullable group
-        $valueGetter = fn(array $row): string => '';
+        $valueGetter = fn(array $_row): string => '';
         $rawPropMap['groupName']['dependsOn'] = ['client.name'];
         $rawPropMap['groupName']['getValue'] = $valueGetter;
         $propMap = Entities::rawPropMapToPropMap($rawPropMap);
@@ -304,7 +305,7 @@ class EntitiesTest extends TestCase
             $this->assertSame("dependsOn key on isBillable property cannot be used without getValue function", $e->getMessage());
         }
 
-        $propMap['isBillable']['getValue'] = fn(array $row): string => '';
+        $propMap['isBillable']['getValue'] = fn(array $_row): string => '';
         $invalidDependsOnValues = ['isBillable', 'notAProp'];
 
         foreach ($invalidDependsOnValues as $dependsOn) {

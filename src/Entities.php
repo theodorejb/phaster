@@ -19,12 +19,14 @@ abstract class Entities
     protected string $idField = 'id';
     private string $selectId;
     private string $idColumn;
+    /** @var array<string, Prop> */
     private array $fullPropMap;
     private array $map;
 
     public function __construct(PeachySql $db)
     {
         $this->db = $db;
+        /** @var array<string, array> $rawPropMap */
         $rawPropMap = array_replace_recursive(self::selectMapToPropMap($this->getSelectMap()), $this->getPropMap());
         $propMap = self::rawPropMapToPropMap($rawPropMap);
         $map = $this->getMap();
@@ -36,6 +38,7 @@ abstract class Entities
         $this->selectId = $propMap[$this->idField]->col;
 
         if (isset($map[$this->idField])) {
+            /** @psalm-suppress MixedAssignment */
             $this->idColumn = $map[$this->idField];
             unset($map[$this->idField]); // prevent modifying identity column
         } else {
@@ -129,6 +132,7 @@ abstract class Entities
     /**
      * Perform any validations/alterations to a set of properties/values to insert/update.
      * When adding entities, default values are merged prior to calling this method.
+     * @param list<string|int> $ids
      */
     protected function processValues(array $data, array $ids): array
     {
@@ -137,12 +141,18 @@ abstract class Entities
 
     /**
      * Make changes to a row before it is inserted or updated in the database.
+     * @param array<string, mixed> $row
+     * @param list<string|int> $ids
+     * @return array<string, mixed>
      */
     protected function processRow(array $row, array $ids): array
     {
         return $row;
     }
 
+    /**
+     * @param list<string|int> $ids
+     */
     public function deleteByIds(array $ids): int
     {
         if (count($ids) === 0) {
@@ -179,6 +189,7 @@ abstract class Entities
 
     /**
      * Update one or more rows via a JSON Merge Patch (https://tools.ietf.org/html/rfc7396)
+     * @param list<string|int> $ids
      */
     public function patchByIds(array $ids, array $mergePatch): int
     {
@@ -198,6 +209,8 @@ abstract class Entities
 
     /**
      * Returns an array containing the IDs of the inserted rows
+     * @param list<array> $entities
+     * @return list<int>
      */
     public function addEntities(array $entities): array
     {
@@ -234,6 +247,7 @@ abstract class Entities
 
     /**
      * @param int|string $id
+     * @param string[] $fields
      */
     public function getEntityById($id, array $fields = []): array
     {
@@ -246,6 +260,10 @@ abstract class Entities
         return $entities[0];
     }
 
+    /**
+     * @param string[] $fields
+     * @return list<array>
+     */
     public function getEntitiesByIds(array $ids, array $fields = [], array $sort = []): array
     {
         if (count($ids) === 0) {
@@ -255,6 +273,10 @@ abstract class Entities
         return $this->getEntities([$this->idField => $ids], $fields, $sort);
     }
 
+    /**
+     * @param string[] $fields
+     * @return list<array>
+     */
     public function getEntities(array $filter = [], array $fields = [], array $sort = [], int $offset = 0, int $limit = 0): array
     {
         $processedFilter = $this->processFilter($filter);
@@ -271,6 +293,7 @@ abstract class Entities
             'fieldProps' => self::getFieldPropMap($fields, $this->fullPropMap),
         ]);
 
+        /** @psalm-suppress MixedArgumentTypeCoercion */
         $select = $this->db->selectFrom($this->getBaseQuery($queryOptions))
             ->where(self::propertiesToColumns($selectMap, $processedFilter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort));
@@ -283,7 +306,9 @@ abstract class Entities
     }
 
     /**
+     * @param \Generator<int, array> $rows
      * @param Prop[] $fieldProps
+     * @return list<array>
      */
     public static function mapRows(\Generator $rows, array $fieldProps): array
     {
@@ -299,6 +324,7 @@ abstract class Entities
             /** @var Prop[] $nullParents */
             $nullParents = [];
 
+            /** @var mixed $value */
             foreach ($row as $colName => $value) {
                 $prop = $aliasMap[$colName];
 
@@ -319,35 +345,39 @@ abstract class Entities
                 }
 
                 if ($prop->getValue) {
+                    /** @var mixed $value */
                     $value = ($prop->getValue)($row);
                 } elseif ($prop->type) {
                     settype($value, $prop->type);
-                } elseif ($value !== null && $prop->timeZone !== false) {
+                } elseif (is_string($value) && $prop->timeZone !== false) {
                     $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
                 }
 
                 /** @psalm-suppress EmptyArrayAccess */
-                $ref = &$entity[$prop->map[0]];
+                $_ref = &$entity[$prop->map[0]];
 
                 for ($i = 1; $i < $prop->depth; $i++) {
-                    $ref = &$ref[$prop->map[$i]];
+                    /** @psalm-suppress MixedAssignment, MixedArrayAccess */
+                    $_ref = &$_ref[$prop->map[$i]];
                 }
 
-                $ref = $value;
-                unset($ref); // dereference
+                /** @psalm-suppress MixedAssignment */
+                $_ref = $value;
+                unset($_ref); // dereference
             }
 
             foreach ($nullParents as $prop) {
                 $depth = $prop->depth - 1;
                 /** @psalm-suppress EmptyArrayAccess */
-                $ref = &$entity[$prop->map[0]];
+                $_ref = &$entity[$prop->map[0]];
 
                 for ($i = 1; $i < $depth; $i++) {
-                    $ref = &$ref[$prop->map[$i]];
+                    /** @psalm-suppress MixedAssignment, MixedArrayAccess */
+                    $_ref = &$_ref[$prop->map[$i]];
                 }
 
-                $ref = null;
-                unset($ref); // dereference
+                $_ref = null;
+                unset($_ref); // dereference
             }
 
             $entities[] = $entity;
@@ -358,12 +388,12 @@ abstract class Entities
 
     /**
      * @param string[] $fields
-     * @param Prop[] $propMap
-     * @return Prop[]
+     * @param array<string, Prop> $propMap
+     * @return array<string, Prop>
      */
     public static function getFieldPropMap(array $fields, array $propMap): array
     {
-        /** @var Prop[] $fieldProps */
+        /** @var array<string, Prop> $fieldProps */
         $fieldProps = [];
         $dependedOn = [];
 
@@ -380,7 +410,7 @@ abstract class Entities
             }
         } else {
             foreach ($fields as $field) {
-                /** @var Prop[] $matches */
+                /** @var array<string, Prop> $matches */
                 $matches = [];
 
                 if (isset($propMap[$field])) {
@@ -421,7 +451,7 @@ abstract class Entities
                     $parent = array_pop($parents);
                     $length = strlen($parent);
 
-                    foreach ($fieldProps as $field => $val) {
+                    foreach ($fieldProps as $field => $_val) {
                         if (substr($field, 0, $length) === $parent) {
                             $dependedOn[$prop] = true;
                             break;
@@ -443,30 +473,15 @@ abstract class Entities
     }
 
     /**
-     * @return Prop[]
+     * @param array<string, array> $map
+     * @return array<string, Prop>
      */
     public static function rawPropMapToPropMap(array $map): array
     {
         $propMap = [];
 
         foreach ($map as $prop => $options) {
-            if (isset($options['dependsOn'])) {
-                if (!is_array($options['dependsOn'])) {
-                    throw new \Exception("dependsOn key on {$prop} property must be an array");
-                }
-
-                if (count($options['dependsOn']) !== 0 && !isset($options['getValue'])) {
-                    throw new \Exception("dependsOn key on {$prop} property cannot be used without getValue function");
-                }
-
-                foreach ($options['dependsOn'] as $field) {
-                    if ($field === $prop || !isset($map[$field])) {
-                        throw new \Exception("Invalid dependsOn value '{$field}' on {$prop} property");
-                    }
-                }
-            }
-
-            $propMap[$prop] = new Prop($prop, $options);
+            $propMap[$prop] = new Prop($prop, $options, $map);
         }
 
         return $propMap;
@@ -481,14 +496,15 @@ abstract class Entities
 
         foreach ($map as $prop) {
             /** @psalm-suppress EmptyArrayAccess */
-            $ref = &$selectMap[$prop->map[0]];
+            $_ref = &$selectMap[$prop->map[0]];
 
             for ($i = 1; $i < $prop->depth; $i++) {
-                $ref = &$ref[$prop->map[$i]];
+                /** @psalm-suppress MixedAssignment, MixedArrayAccess */
+                $_ref = &$_ref[$prop->map[$i]];
             }
 
-            $ref = $prop->col;
-            unset($ref); // dereference
+            $_ref = $prop->col;
+            unset($_ref); // dereference
         }
 
         return $selectMap;
@@ -509,6 +525,9 @@ abstract class Entities
         return $aliasMap;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function selectMapToPropMap(array $map, string $context = ''): array
     {
         $propMap = [];
@@ -517,6 +536,9 @@ abstract class Entities
             $context .= '.';
         }
 
+        /**
+         * @var string|array $val
+         */
         foreach ($map as $key => $val) {
             $newKey = $context . $key;
 
@@ -532,6 +554,7 @@ abstract class Entities
 
     /**
      * Uses a map array to convert nested properties to an array of columns and values
+     * @return array<string, mixed>
      */
     public static function propertiesToColumns(array $map, array $properties, bool $requireFullMap = false): array
     {
@@ -543,6 +566,10 @@ abstract class Entities
         return self::propsToColumns($map, $properties, $requireFullMap, true);
     }
 
+    /**
+     * @param array<string, mixed> $columns
+     * @return array<string, mixed>
+     */
     private static function propsToColumns(array $map, array $properties, bool $allowExtraProperties, bool $buildColumns, string $context = '', array &$columns = []): array
     {
         if ($context !== '') {
@@ -561,6 +588,7 @@ abstract class Entities
                 throw new HttpException("{$errMsg} {$contextProp} property", StatusCode::BAD_REQUEST);
             }
 
+            /** @var array|mixed $newMap */
             $newMap = $map[$property]; // might be value
 
             if (is_array($newMap)) {
@@ -582,6 +610,7 @@ abstract class Entities
                     throw new \Exception("Column '{$newMap}' is mapped to more than one property ({$contextProp})");
                 }
 
+                /** @psalm-suppress MixedAssignment */
                 $columns[$newMap] = $value;
             }
         }

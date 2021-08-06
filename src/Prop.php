@@ -29,7 +29,7 @@ class Prop
     /** @var string[] */
     public array $parents = [];
 
-    public function __construct(string $prop, array $options)
+    public function __construct(string $prop, array $options, array $map)
     {
         $this->map = explode('.', $prop);
         $this->depth = count($this->map);
@@ -93,7 +93,22 @@ class Prop
         }
 
         if (isset($options['dependsOn'])) {
-            $this->dependsOn = $options['dependsOn']; // validated in rawPropMapToPropMap
+            if (!is_array($options['dependsOn'])) {
+                throw new \Exception("dependsOn key on {$prop} property must be an array");
+            }
+
+            if (count($options['dependsOn']) !== 0 && !isset($options['getValue'])) {
+                throw new \Exception("dependsOn key on {$prop} property cannot be used without getValue function");
+            }
+
+            foreach ($options['dependsOn'] as $field) {
+                if (!is_string($field) || $field === $prop || !isset($map[$field])) {
+                    throw new \Exception("Invalid dependsOn value '{$field}' on {$prop} property");
+                }
+            }
+
+            /** @psalm-suppress MixedPropertyTypeCoercion */
+            $this->dependsOn = $options['dependsOn'];
         }
 
         if (isset($options['nullGroup'])) {
@@ -125,7 +140,7 @@ class Prop
             $options['notDefault']
         );
 
-        foreach ($options as $key => $value) {
+        foreach ($options as $key => $_val) {
             // any remaining options are invalid
             throw new \Exception("Invalid key '{$key}' on {$prop} property");
         }

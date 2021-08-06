@@ -15,6 +15,9 @@ class EntitiesDbTest extends TestCase
         DbConnector::deleteTestTables();
     }
 
+    /**
+     * @return list<array{0: PeachySql}>
+     */
     public function dbProvider(): array
     {
         $config = DbConnector::getConfig();
@@ -31,22 +34,46 @@ class EntitiesDbTest extends TestCase
         return $databases;
     }
 
+    /**
+     * @return list<array{0: Users}>
+     */
     public function entitiesProvider(): array
     {
-        $mapper = fn(array $db): array => [new Users($db[0])];
-        return array_map($mapper, $this->dbProvider());
+        $list = [];
+
+        foreach ($this->dbProvider() as $db) {
+            $list[] = [new Users($db[0])];
+        }
+
+        return $list;
     }
 
+    /**
+     * @return list<array{0: LegacyUsers}>
+     */
     public function legacyUsersProvider(): array
     {
-        $mapper = fn(array $db): array => [new LegacyUsers($db[0])];
-        return array_map($mapper, $this->dbProvider());
+        $list = [];
+
+        foreach ($this->dbProvider() as $db) {
+            $list[] = [new LegacyUsers($db[0])];
+        }
+
+        return $list;
     }
 
+    /**
+     * @return list<array{0: ModernUsers, 1: PeachySql}>
+     */
     public function modernUsersProvider(): array
     {
-        $mapper = fn(array $db): array => [new ModernUsers($db[0]), $db[0]];
-        return array_map($mapper, $this->dbProvider());
+        $list = [];
+
+        foreach ($this->dbProvider() as $db) {
+            $list[] = [new ModernUsers($db[0]), $db[0]];
+        }
+
+        return $list;
     }
 
     /**
