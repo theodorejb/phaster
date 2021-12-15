@@ -65,6 +65,29 @@ class Users extends Entities
 }
 ```
 
+If it is necessary to bind parameters in the base query, use `getBaseSelect` instead:
+
+```php
+use PeachySQL\QueryBuilder\SqlParams;
+// ...
+protected function getBaseSelect(QueryOptions $options): SqlParams
+{
+    $sql = "WITH num_orders AS
+            (
+                SELECT user_id, COUNT(*) as orders
+                FROM Orders
+                WHERE category_id = ?
+                GROUP BY user_id
+            )
+            SELECT {$options->getColumns()}
+            FROM Users u
+            INNER JOIN num_orders n ON n.user_id = u.user_id";
+
+    return new SqlParams($sql, [321]);
+}
+// ...
+```
+
 ```php
 <?php
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace theodorejb\Phaster\Test;
 
 use theodorejb\Phaster\{Entities, QueryOptions};
+use PeachySQL\QueryBuilder\SqlParams;
 
 class LegacyUsers extends Entities
 {
@@ -39,22 +40,26 @@ class LegacyUsers extends Entities
         return $filter;
     }
 
-    protected function getBaseQuery(QueryOptions $options): string
+    protected function getBaseSelect(QueryOptions $options): SqlParams
     {
         $originalFilter = $options->getOriginalFilter();
+        $customFilter = '';
+        $params = [];
 
-        if (isset($originalFilter['customFilter']) && is_int($originalFilter['customFilter'])) {
-            $customFilter = 'WHERE u1.user_id <> ' . $originalFilter['customFilter'];
-        } else {
-            $customFilter = '';
+        if (isset($originalFilter['customFilter'])) {
+            $customFilter = 'WHERE u1.user_id <> ?';
+            /** @psalm-suppress MixedAssignment */
+            $params[] = $originalFilter['customFilter'];
         }
 
-        return "
+        $sql = "
             SELECT {$options->getColumns()}
             FROM (
                 SELECT * FROM Users u1 $customFilter
             ) u
             LEFT JOIN UserThings ut ON ut.user_id = u.user_id";
+
+        return new SqlParams($sql, $params);
     }
 
     protected function processRow(array $row, array $ids): array

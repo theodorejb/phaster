@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace theodorejb\Phaster;
 
 use PeachySQL\PeachySql;
+use PeachySQL\QueryBuilder\SqlParams;
 use PeachySQL\SqlException;
 use Teapot\{HttpException, StatusCode};
 
@@ -72,6 +73,14 @@ abstract class Entities
     protected function getBaseQuery(QueryOptions $options): string
     {
         return "SELECT {$options->getColumns()} FROM " . $this->getTableName();
+    }
+
+    /**
+     * Returns the base select query with optional bound params.
+     */
+    protected function getBaseSelect(QueryOptions $options): SqlParams
+    {
+        return new SqlParams($this->getBaseQuery($options), []);
     }
 
     protected function getDefaultSort(): array
@@ -290,7 +299,7 @@ abstract class Entities
         $queryOptions = new QueryOptions($processedFilter, $filter, $sort, $fieldProps);
 
         /** @psalm-suppress MixedArgumentTypeCoercion */
-        $select = $this->db->selectFrom($this->getBaseQuery($queryOptions))
+        $select = $this->db->select($this->getBaseSelect($queryOptions))
             ->where(self::propertiesToColumns($selectMap, $processedFilter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort));
 
