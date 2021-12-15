@@ -286,12 +286,8 @@ abstract class Entities
             $sort = $this->getDefaultSort();
         }
 
-        $queryOptions = new QueryOptions([
-            'filter' => $processedFilter,
-            'originalFilter' => $filter,
-            'sort' => $sort,
-            'fieldProps' => self::getFieldPropMap($fields, $this->fullPropMap),
-        ]);
+        $fieldProps = self::getFieldPropMap($fields, $this->fullPropMap);
+        $queryOptions = new QueryOptions($processedFilter, $filter, $sort, $fieldProps);
 
         /** @psalm-suppress MixedArgumentTypeCoercion */
         $select = $this->db->selectFrom($this->getBaseQuery($queryOptions))
@@ -302,7 +298,7 @@ abstract class Entities
             $select->offset($offset, $limit);
         }
 
-        return self::mapRows($select->query()->getIterator(), $queryOptions->getFieldProps());
+        return self::mapRows($select->query()->getIterator(), $fieldProps);
     }
 
     /**

@@ -13,14 +13,14 @@ class QueryOptions
     private array $fieldProps;
 
     /**
-     * @param array{filter: array, originalFilter: array, sort: array, fieldProps: Prop[]} $query
+     * @param Prop[] $fieldProps
      */
-    public function __construct(array $query)
+    public function __construct(array $filter, array $originalFilter, array $sort, array $fieldProps)
     {
-        $this->filter = $query['filter'];
-        $this->originalFilter = $query['originalFilter'];
-        $this->sort = $query['sort'];
-        $this->fieldProps = $query['fieldProps'];
+        $this->filter = $filter;
+        $this->originalFilter = $originalFilter;
+        $this->sort = $sort;
+        $this->fieldProps = $fieldProps;
     }
 
     public function getFilter(): array
