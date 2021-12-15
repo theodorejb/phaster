@@ -186,7 +186,7 @@ abstract class Entities
      */
     public function updateById($id, array $data): int
     {
-        $row = self::propertiesToColumns($this->map, $this->processValues($data, [$id]), true);
+        $row = self::allPropertiesToColumns($this->map, $this->processValues($data, [$id]));
         $row = $this->processRow($row, [$id]);
 
         try {
@@ -232,7 +232,7 @@ abstract class Entities
 
         foreach ($entities as $entity) {
             $data = array_replace_recursive($defaultValues, $entity);
-            $row = self::propertiesToColumns($this->map, $this->processValues($data, []), true);
+            $row = self::allPropertiesToColumns($this->map, $this->processValues($data, []));
             $rows[] = $this->processRow($row, []);
         }
 
@@ -421,7 +421,7 @@ abstract class Entities
                 if (isset($propMap[$field])) {
                     $matches[$field] = $propMap[$field];
                 } else {
-                    // check for sub-fields
+                    // check for subfields
                     $parent = $field . '.';
                     $length = strlen($parent);
 
@@ -558,17 +558,22 @@ abstract class Entities
     }
 
     /**
-     * Uses a map array to convert nested properties to an array of columns and values
+     * Converts nested properties to an array of columns and values using a map.
      * @return array<string, mixed>
      */
-    public static function propertiesToColumns(array $map, array $properties, bool $requireFullMap = false): array
+    public static function propertiesToColumns(array $map, array $properties, bool $allowExtraProperties = false): array
     {
-        if ($requireFullMap) {
-            // ensure that all the mapped properties exist
-            self::propsToColumns($properties, $map, false, false);
-        }
+        return self::propsToColumns($map, $properties, $allowExtraProperties, true);
+    }
 
-        return self::propsToColumns($map, $properties, $requireFullMap, true);
+    /**
+     * Converts nested properties to an array of columns and values using a map. All properties in the map are required.
+     * @return array<string, mixed>
+     */
+    public static function allPropertiesToColumns(array $map, array $properties): array
+    {
+        self::propsToColumns($properties, $map, false, false);
+        return self::propsToColumns($map, $properties, true, true);
     }
 
     /**

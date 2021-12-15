@@ -377,7 +377,7 @@ class EntitiesTest extends TestCase
             'BinaryColumn' => ['abc123', 1],
         ];
 
-        $this->assertSame($binaryExpectation, Entities::propertiesToColumns($binaryMap, $binaryObj, true));
+        $this->assertSame($binaryExpectation, Entities::allPropertiesToColumns($binaryMap, $binaryObj));
     }
 
     public function testInvalidMap(): void
@@ -408,7 +408,7 @@ class EntitiesTest extends TestCase
         ];
 
         try {
-            Entities::propertiesToColumns($duplicateColumns, $properties, true);
+            Entities::allPropertiesToColumns($duplicateColumns, $properties);
             $this->fail('Failed to throw exception for duplicate map column');
         } catch (\Exception $e) {
             $this->assertSame("Column 'TestCol' is mapped to more than one property (prop2.subProp)", $e->getMessage());
@@ -447,7 +447,36 @@ class EntitiesTest extends TestCase
         }
     }
 
-    public function testRequireFullMap(): void
+    public function testPartialPropertiesToColumns(): void
+    {
+        $map =  [
+            'name' => 'UserName',
+            'client' => [
+                'id' => 'ClientID',
+            ],
+            'group' => [
+                'type' => [
+                    'id' => 'GroupTypeID',
+                ],
+            ],
+        ];
+
+        $partialProperties = [
+            // doesn't have all properties in map
+            'name' => 'Test Name',
+            'group' => ['type' => ['id' => 321]],
+            'extra' => 'extra properties are valid',
+        ];
+
+        $expected = [
+            'UserName' => 'Test Name',
+            'GroupTypeID' => 321,
+        ];
+
+        $this->assertSame($expected, Entities::propertiesToColumns($map, $partialProperties, true));
+    }
+
+    public function testAllPropertiesToColumns(): void
     {
         $map =  [
             'name' => 'UserName',
@@ -462,7 +491,7 @@ class EntitiesTest extends TestCase
         ];
 
         try {
-            Entities::propertiesToColumns($map, [], true);
+            Entities::allPropertiesToColumns($map, []);
             $this->fail('Failed to throw exception for missing property');
         } catch (HttpException $e) {
             $this->assertSame("Missing required name property", $e->getMessage());
@@ -474,7 +503,7 @@ class EntitiesTest extends TestCase
                 'client' => [],
             ];
 
-            Entities::propertiesToColumns($map, $missingClientId, true);
+            Entities::allPropertiesToColumns($map, $missingClientId);
             $this->fail('Failed to throw exception for missing property');
         } catch (HttpException $e) {
             $this->assertSame("Missing required client.id property", $e->getMessage());
@@ -487,7 +516,7 @@ class EntitiesTest extends TestCase
                 'group' => ['type' => []],
             ];
 
-            Entities::propertiesToColumns($map, $missingGroupTypeId, true);
+            Entities::allPropertiesToColumns($map, $missingGroupTypeId);
             $this->fail('Failed to throw exception for missing property');
         } catch (HttpException $e) {
             $this->assertSame("Missing required group.type.id property", $e->getMessage());
@@ -500,7 +529,7 @@ class EntitiesTest extends TestCase
             'extra' => 'extra properties are valid when full map is required',
         ];
 
-        $this->assertSame([], Entities::propertiesToColumns([], $valid, true));
+        $this->assertSame([], Entities::allPropertiesToColumns([], $valid));
 
         $expected = [
             'UserName' => 'Test Name',
@@ -508,6 +537,6 @@ class EntitiesTest extends TestCase
             'GroupTypeID' => 234
         ];
 
-        $this->assertSame($expected, Entities::propertiesToColumns($map, $valid, true));
+        $this->assertSame($expected, Entities::allPropertiesToColumns($map, $valid));
     }
 }

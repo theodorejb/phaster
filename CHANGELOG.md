@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2021-12-15
+### Added
+- `getBaseSelect` method to support bound params in base select query.
+
+### Changed
+- `propertiesToColumns()` now optionally allows conversions with a partial column map.
+This makes it possible to generate secondary filters using a subset of properties.
+
 ## [2.2.2] - 2021-08-15
 ### Changed
 - Internal refactoring and static analysis improvements.
@@ -114,7 +122,8 @@ return early if passed an empty IDs array.
 ### Changed
 - Initial stable release
 
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.2.2...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/theodorejb/phaster/compare/v2.2.2...v2.3.0
 [2.2.2]: https://github.com/theodorejb/phaster/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/theodorejb/phaster/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/theodorejb/phaster/compare/v2.1.0...v2.2.0
