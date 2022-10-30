@@ -17,14 +17,18 @@
         "theodorejb/peachy-sql": "^6.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5.10",
-        "psalm/plugin-phpunit": "^0.16.1",
-        "vimeo/psalm": "^4.15"
+        "phpunit/phpunit": "^9.5.26",
+        "psalm/plugin-phpunit": "^0.18.3",
+        "vimeo/psalm": "^4.30"
     },
     "autoload": {
         "psr-4": {"theodorejb\\Phaster\\": "src/"}
     },
     "autoload-dev": {
         "psr-4": {"theodorejb\\Phaster\\Test\\": "test/src/"}
+    },
+    "scripts": {
+        "psalm": "psalm",
+        "test": "phpunit"
     }
 }
