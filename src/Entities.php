@@ -9,6 +9,12 @@ use PeachySQL\QueryBuilder\SqlParams;
 use PeachySQL\SqlException;
 use Teapot\{HttpException, StatusCode};
 
+/**
+ * @psalm-type PropArray = array{
+ *     col?: string, nullGroup?: bool, notDefault?: bool, alias?: string, type?: string,
+ *     timeZone?: \DateTimeZone|null, getValue?: callable|null, dependsOn?: list<string>
+ * }
+ */
 abstract class Entities
 {
     /**
@@ -27,15 +33,22 @@ abstract class Entities
     public function __construct(PeachySql $db)
     {
         $this->db = $db;
-        /** @var array<string, array> $rawPropMap */
-        $rawPropMap = array_replace_recursive(self::selectMapToPropMap($this->getSelectMap()), $this->getPropMap());
-        $propMap = self::rawPropMapToPropMap($rawPropMap);
-        $map = $this->getMap();
+        /** @psalm-suppress DeprecatedMethod */
+        $legacyPropMap = $this->getPropMap();
+        /** @var array<string, PropArray> $rawPropMap */
+        $rawPropMap = array_replace_recursive(self::selectMapToPropMap($this->getSelectMap()), $legacyPropMap);
+        $bcProps = self::rawPropMapToProps($rawPropMap);
+
+        $propMap = array_replace(
+            Helpers::propListToPropMap($bcProps),
+            Helpers::propListToPropMap($this->getSelectProps()),
+        );
 
         if (!isset($propMap[$this->idField])) {
             throw new \Exception('Missing required id property in map');
         }
 
+        $map = $this->getMap();
         $this->selectId = $propMap[$this->idField]->col;
 
         if (isset($map[$this->idField])) {
@@ -115,8 +128,20 @@ abstract class Entities
     /**
      * Merge additional property information with getSelectMap().
      * Look at the Prop class constructor to see supported options.
+     * @deprecated Use getSelectProps() instead.
+     * @return array<string, PropArray>
      */
     protected function getPropMap(): array
+    {
+        return [];
+    }
+
+    /**
+     * Merge additional property information with getSelectMap().
+     * Look at the Prop class constructor to see supported options.
+     * @return list<Prop>
+     */
+    protected function getSelectProps(): array
     {
         return [];
     }
@@ -314,6 +339,7 @@ abstract class Entities
      * @param \Generator<int, array> $rows
      * @param Prop[] $fieldProps
      * @return list<array>
+     * @internal
      */
     public static function mapRows(\Generator $rows, array $fieldProps): array
     {
@@ -395,6 +421,7 @@ abstract class Entities
      * @param string[] $fields
      * @param array<string, Prop> $propMap
      * @return array<string, Prop>
+     * @internal
      */
     public static function getFieldPropMap(array $fields, array $propMap): array
     {
@@ -478,22 +505,34 @@ abstract class Entities
     }
 
     /**
-     * @param array<string, array> $map
-     * @return array<string, Prop>
+     * @param array<string, PropArray> $map
+     * @return list<Prop>
+     * @internal
      */
-    public static function rawPropMapToPropMap(array $map): array
+    public static function rawPropMapToProps(array $map): array
     {
-        $propMap = [];
+        $props = [];
 
-        foreach ($map as $prop => $options) {
-            $propMap[$prop] = new Prop($prop, $options, $map);
+        foreach ($map as $name => $options) {
+            $props[] = new Prop(
+                $name,
+                $options['col'] ?? '',
+                $options['nullGroup'] ?? false,
+                !($options['notDefault'] ?? false),
+                $options['alias'] ?? '',
+                $options['type'] ?? null,
+                $options['timeZone'] ?? false,
+                $options['getValue'] ?? null,
+                $options['dependsOn'] ?? []
+            );
         }
 
-        return $propMap;
+        return $props;
     }
 
     /**
      * @param Prop[] $map
+     * @internal
      */
     public static function propMapToSelectMap(array $map): array
     {
@@ -518,6 +557,7 @@ abstract class Entities
     /**
      * @param Prop[] $map
      * @return Prop[]
+     * @internal
      */
     public static function propMapToAliasMap(array $map): array
     {
@@ -531,7 +571,8 @@ abstract class Entities
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, PropArray>
+     * @internal
      */
     public static function selectMapToPropMap(array $map, string $context = ''): array
     {
@@ -569,6 +610,7 @@ abstract class Entities
     /**
      * Converts nested properties to an array of columns and values using a map. All properties in the map are required.
      * @return array<string, mixed>
+     * @internal
      */
     public static function allPropertiesToColumns(array $map, array $properties): array
     {

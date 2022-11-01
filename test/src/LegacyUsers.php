@@ -7,6 +7,10 @@ namespace theodorejb\Phaster\Test;
 use theodorejb\Phaster\{Entities, QueryOptions};
 use PeachySQL\QueryBuilder\SqlParams;
 
+/**
+ * @psalm-import-type PropArray from Entities
+ * https://github.com/vimeo/psalm/issues/8645
+ */
 class LegacyUsers extends Entities
 {
     protected function getTableName(): string

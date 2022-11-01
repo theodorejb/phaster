@@ -49,6 +49,7 @@ class Config
         return [
             'Database' => 'Phaster',
             'ReturnDatesAsStrings' => true,
+            'CharacterSet' => 'UTF-8',
         ];
     }
 }

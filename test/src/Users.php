@@ -6,6 +6,10 @@ namespace theodorejb\Phaster\Test;
 
 use theodorejb\Phaster\Entities;
 
+/**
+ * @psalm-import-type PropArray from Entities
+ * https://github.com/vimeo/psalm/issues/8645
+ */
 class Users extends Entities
 {
     protected function getMap(): array

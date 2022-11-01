@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace theodorejb\Phaster\Test;
 
-use theodorejb\Phaster\{Entities, QueryOptions};
+use theodorejb\Phaster\{Entities, Prop, QueryOptions};
 
+/**
+ * @psalm-import-type PropArray from Entities
+ * https://github.com/vimeo/psalm/issues/8645
+ */
 class ModernUsers extends Entities
 {
     protected function getTableName(): string
@@ -24,14 +28,14 @@ class ModernUsers extends Entities
         ];
     }
 
-    protected function getPropMap(): array
+    protected function getSelectProps(): array
     {
         return [
-            'id' => ['col' => 'u.u_id'],
-            'name' => ['alias' => 'username'],
-            'isDisabled' => ['type' => 'bool'],
-            'thing.id' => ['col' => 'ut.thing_id', 'nullGroup' => true],
-            'thing.uid' => ['col' => 'ut.user_id', 'alias' => 'thing_user'],
+            new Prop('id', 'u.u_id'),
+            new Prop('name', 'name', false, true, 'username'),
+            new Prop('isDisabled', 'isDisabled', false, true, '', 'bool'),
+            new Prop('thing.id', 'ut.thing_id', true),
+            new Prop('thing.uid', 'ut.user_id', false, true, 'thing_user'),
         ];
     }
 

@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        php: [ '7.4', '8.0' ]
+        php: [ '7.4', '8.0', '8.1' ]
 
     services:
       mysql:
@@ -28,7 +28,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:v2, psalm
-          extensions: sqlsrv-5.9.0beta2
+          extensions: sqlsrv-5.10.1
 
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
@@ -36,7 +36,10 @@ jobs:
       - run: composer install --no-progress --prefer-dist --no-suggest
 
       - run: psalm --output-format=github
-        if: ${{ matrix.php == '8.0' }}
+        if: ${{ matrix.php == '8.1' }}
+
+      - name: Wait for MySQL
+        run: sleep 3
 
       - run: vendor/bin/phpunit
         env:

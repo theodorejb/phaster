@@ -4,34 +4,76 @@ declare(strict_types=1);
 
 namespace theodorejb\Phaster;
 
+use DateTimeZone;
+
 class Prop
 {
+    /** @readonly */
+    public string $name;
+    /** @readonly */
     public string $col;
-    public string $alias = '';
+    /** @readonly */
+    public string $alias;
 
-    /** @var callable | null */
+    /**
+     * @var callable|null
+     * @readonly
+     */
     public $getValue;
+    /** @readonly */
     public ?string $type = null;
 
-    /** @var \DateTimeZone | null | false */
-    public $timeZone = false;
+    /**
+     * @var DateTimeZone|null|false
+     * @readonly
+     */
+    public $timeZone;
 
-    /** @var string[] */
-    public array $dependsOn = [];
-    public bool $nullGroup = false;
-    public bool $isDefault = true;
+    /**
+     * @var string[]
+     * @readonly
+     */
+    public array $dependsOn;
+    /** @readonly */
+    public bool $nullGroup;
+    /** @readonly */
+    public bool $isDefault;
+
+    /**
+     * This is the only property which can be modified externally.
+     */
     public bool $noOutput = false;
 
-    /** @var string[] */
+    /**
+     * @var string[]
+     * @readonly
+     */
     public array $map;
+    /** @readonly */
     public int $depth;
 
-    /** @var string[] */
+    /**
+     * @var string[]
+     * @readonly
+     */
     public array $parents = [];
 
-    public function __construct(string $prop, array $options, array $map)
-    {
-        $this->map = explode('.', $prop);
+    /**
+     * @param DateTimeZone|null|false $timeZone
+     * @param string[] $dependsOn
+     */
+    public function __construct(
+        string $name,
+        string $col,
+        bool $nullGroup = false,
+        bool $isDefault = true,
+        string $alias = '',
+        ?string $type = null,
+        $timeZone = false,
+        ?callable $getValue = null,
+        array $dependsOn = []
+    ) {
+        $this->map = explode('.', $name);
         $this->depth = count($this->map);
         $parent = '';
 
@@ -40,110 +82,43 @@ class Prop
             $this->parents[] = $parent;
         }
 
-        if (!isset($options['col'])) {
-            throw new \Exception("{$prop} property must have 'col' key");
-        } elseif (gettype($options['col']) !== 'string') {
-            throw new \Exception("col key on {$prop} property must be a string");
+        if ($nullGroup && $this->depth < 2) {
+            throw new \Exception("nullGroup cannot be set on top-level {$name} property");
         }
 
-        $this->col = $options['col'];
-
-        if (isset($options['alias'])) {
-            if (gettype($options['alias']) !== 'string') {
-                throw new \Exception("alias key on {$prop} property must be a string");
+        if ($getValue !== null) {
+            if ($type !== null) {
+                throw new \Exception("type cannot be set on {$name} property along with getValue");
+            } elseif ($timeZone !== false) {
+                throw new \Exception("timeZone cannot be set on {$name} property along with getValue");
             }
-
-            $this->alias = $options['alias'];
         }
 
-        if (isset($options['getValue'])) {
-            if (!is_callable($options['getValue'])) {
-                throw new \Exception("getValue key on {$prop} property must be callable");
-            }
-
-            if (isset($options['type'])) {
-                throw new \Exception("type key on {$prop} property cannot be set along with getValue");
-            } elseif (isset($options['timeZone'])) {
-                throw new \Exception("timeZone key on {$prop} property cannot be set along with getValue");
-            }
-
-            $this->getValue = $options['getValue'];
-        }
-
-        if (isset($options['type'])) {
+        if ($type !== null) {
             $allowedTypes = ['bool', 'int', 'float', 'string'];
 
-            if (!in_array($options['type'], $allowedTypes, true)) {
-                throw new \Exception("type key on {$prop} property must be bool, int, float, or string");
+            if (!in_array($type, $allowedTypes, true)) {
+                throw new \Exception("type for {$name} property must be bool, int, float, or string");
             }
 
-            if (isset($options['timeZone'])) {
-                throw new \Exception("timeZone key on {$prop} property cannot be set along with type");
-            }
-
-            $this->type = $options['type'];
-        }
-
-        if (array_key_exists('timeZone', $options)) {
-            if ($options['timeZone'] === null || $options['timeZone'] instanceof \DateTimeZone) {
-                $this->timeZone = $options['timeZone'];
-            } else {
-                throw new \Exception("timeZone key on {$prop} property must be a DateTimeZone instance or null");
+            if ($timeZone !== false) {
+                throw new \Exception("timeZone cannot be set on {$name} property along with type");
             }
         }
 
-        if (isset($options['dependsOn'])) {
-            if (!is_array($options['dependsOn'])) {
-                throw new \Exception("dependsOn key on {$prop} property must be an array");
-            }
-
-            if (count($options['dependsOn']) !== 0 && !isset($options['getValue'])) {
-                throw new \Exception("dependsOn key on {$prop} property cannot be used without getValue function");
-            }
-
-            foreach ($options['dependsOn'] as $field) {
-                if (!is_string($field) || $field === $prop || !isset($map[$field])) {
-                    throw new \Exception("Invalid dependsOn value '{$field}' on {$prop} property");
-                }
-            }
-
-            /** @psalm-suppress MixedPropertyTypeCoercion */
-            $this->dependsOn = $options['dependsOn'];
+        if (count($dependsOn) !== 0 && $getValue === null) {
+            throw new \Exception("dependsOn cannot be used on {$name} property without getValue function");
         }
 
-        if (isset($options['nullGroup'])) {
-            if (gettype($options['nullGroup']) !== 'boolean') {
-                throw new \Exception("nullGroup key on {$prop} property must be a boolean");
-            } elseif ($this->depth < 2) {
-                throw new \Exception("nullGroup cannot be set on top-level {$prop} property");
-            }
-
-            $this->nullGroup = $options['nullGroup'];
-        }
-
-        if (isset($options['notDefault'])) {
-            if (gettype($options['notDefault']) !== 'boolean') {
-                throw new \Exception("notDefault key on {$prop} property must be a boolean");
-            }
-
-            $this->isDefault = !$options['notDefault'];
-        }
-
-        unset(
-            $options['col'],
-            $options['alias'],
-            $options['getValue'],
-            $options['type'],
-            $options['timeZone'],
-            $options['dependsOn'],
-            $options['nullGroup'],
-            $options['notDefault']
-        );
-
-        foreach ($options as $key => $_val) {
-            // any remaining options are invalid
-            throw new \Exception("Invalid key '{$key}' on {$prop} property");
-        }
+        $this->name = $name;
+        $this->col = $col;
+        $this->alias = $alias;
+        $this->getValue = $getValue;
+        $this->type = $type;
+        $this->timeZone = $timeZone;
+        $this->dependsOn = $dependsOn;
+        $this->nullGroup = $nullGroup;
+        $this->isDefault = $isDefault;
     }
 
     public function getOutputCol(): string

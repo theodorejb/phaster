@@ -1,9 +1,7 @@
 # Phaster
 
-[![Build Status](https://travis-ci.org/theodorejb/phaster.svg?branch=master)](https://travis-ci.org/theodorejb/phaster)
-
 Phaster is a library for easily creating RESTful API endpoints.
-It works well with the Slim Framework, and supports PHP 7.1+.
+It works well with the Slim Framework, and supports PHP 7.4+.
 
 ## Installation
 
@@ -22,7 +20,7 @@ functions to your Slim or other PSR-7 compatible framework.
 ```php
 <?php
 
-use theodorejb\Phaster\{Entities, QueryOptions};
+use theodorejb\Phaster\{Entities, Prop, QueryOptions};
 
 class Users extends Entities
 {
@@ -40,14 +38,14 @@ class Users extends Entities
         ];
     }
 
-    protected function getPropMap(): array
+    protected function getSelectProps(): array
     {
         // map additional properties for selecting/filtering and set output options
         return [
-            'id' => ['col' => 'u.user_id'],
-            'isDisabled' => ['col' => 'u.disabled', 'type' => 'bool'],
-            'role.id' => ['col' => 'u.role_id'],
-            'role.name' => ['col' => 'r.role_name'],
+            new Prop('id', col: 'u.user_id'),
+            new Prop('isDisabled', col: 'u.disabled', type: 'bool'),
+            new Prop('role.id', col: 'u.role_id'),
+            new Prop('role.name', col: 'r.role_name'),
         ];
     }
 
