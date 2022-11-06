@@ -36,8 +36,8 @@ abstract class Entities
         /** @psalm-suppress DeprecatedMethod */
         $legacyPropMap = $this->getPropMap();
         /** @var array<string, PropArray> $rawPropMap */
-        $rawPropMap = array_replace_recursive(self::selectMapToPropMap($this->getSelectMap()), $legacyPropMap);
-        $bcProps = self::rawPropMapToProps($rawPropMap);
+        $rawPropMap = array_replace_recursive(Helpers::selectMapToPropMap($this->getSelectMap()), $legacyPropMap);
+        $bcProps = Helpers::rawPropMapToProps($rawPropMap);
 
         $propMap = array_replace(
             Helpers::propListToPropMap($bcProps),
@@ -314,13 +314,13 @@ abstract class Entities
     public function getEntities(array $filter = [], array $fields = [], array $sort = [], int $offset = 0, int $limit = 0): array
     {
         $processedFilter = $this->processFilter($filter);
-        $selectMap = self::propMapToSelectMap($this->fullPropMap);;
+        $selectMap = Helpers::propMapToSelectMap($this->fullPropMap);;
 
         if ($sort === []) {
             $sort = $this->getDefaultSort();
         }
 
-        $fieldProps = self::getFieldPropMap($fields, $this->fullPropMap);
+        $fieldProps = Helpers::getFieldPropMap($fields, $this->fullPropMap);
         $queryOptions = new QueryOptions($processedFilter, $filter, $sort, $fieldProps);
 
         /** @psalm-suppress MixedArgumentTypeCoercion */
@@ -332,270 +332,7 @@ abstract class Entities
             $select->offset($offset, $limit);
         }
 
-        return self::mapRows($select->query()->getIterator(), $fieldProps);
-    }
-
-    /**
-     * @param \Generator<int, array> $rows
-     * @param Prop[] $fieldProps
-     * @return list<array>
-     * @internal
-     */
-    public static function mapRows(\Generator $rows, array $fieldProps): array
-    {
-        if (!$rows->valid()) {
-            return []; // no rows selected
-        }
-
-        $aliasMap = self::propMapToAliasMap($fieldProps);
-        $entities = [];
-
-        foreach ($rows as $row) {
-            $entity = [];
-            /** @var Prop[] $nullParents */
-            $nullParents = [];
-
-            /** @var mixed $value */
-            foreach ($row as $colName => $value) {
-                $prop = $aliasMap[$colName];
-
-                if ($prop->nullGroup && $value === null) {
-                    // only add if there isn't a higher-level null parent
-                    $parent = '';
-
-                    foreach ($prop->parents as $parent) {
-                        if (isset($nullParents[$parent])) {
-                            continue 2;
-                        }
-                    }
-
-                    $nullParents[$parent] = $prop;
-                    continue;
-                } elseif ($prop->noOutput) {
-                    continue;
-                }
-
-                if ($prop->getValue) {
-                    /** @var mixed $value */
-                    $value = ($prop->getValue)($row);
-                } elseif ($prop->type) {
-                    settype($value, $prop->type);
-                } elseif (is_string($value) && $prop->timeZone !== false) {
-                    $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
-                }
-
-                /** @psalm-suppress EmptyArrayAccess */
-                $_ref = &$entity[$prop->map[0]];
-
-                for ($i = 1; $i < $prop->depth; $i++) {
-                    /** @psalm-suppress MixedAssignment, MixedArrayAccess */
-                    $_ref = &$_ref[$prop->map[$i]];
-                }
-
-                /** @psalm-suppress MixedAssignment */
-                $_ref = $value;
-                unset($_ref); // dereference
-            }
-
-            foreach ($nullParents as $prop) {
-                $depth = $prop->depth - 1;
-                /** @psalm-suppress EmptyArrayAccess */
-                $_ref = &$entity[$prop->map[0]];
-
-                for ($i = 1; $i < $depth; $i++) {
-                    /** @psalm-suppress MixedAssignment, MixedArrayAccess */
-                    $_ref = &$_ref[$prop->map[$i]];
-                }
-
-                $_ref = null;
-                unset($_ref); // dereference
-            }
-
-            $entities[] = $entity;
-        }
-
-        return $entities;
-    }
-
-    /**
-     * @param string[] $fields
-     * @param array<string, Prop> $propMap
-     * @return array<string, Prop>
-     * @internal
-     */
-    public static function getFieldPropMap(array $fields, array $propMap): array
-    {
-        /** @var array<string, Prop> $fieldProps */
-        $fieldProps = [];
-        $dependedOn = [];
-
-        if ($fields === []) {
-            // select all default fields
-            foreach ($propMap as $prop => $data) {
-                if ($data->isDefault) {
-                    $fieldProps[$prop] = $data;
-
-                    foreach ($data->dependsOn as $value) {
-                        $dependedOn[$value] = true;
-                    }
-                }
-            }
-        } else {
-            foreach ($fields as $field) {
-                /** @var array<string, Prop> $matches */
-                $matches = [];
-
-                if (isset($propMap[$field])) {
-                    $matches[$field] = $propMap[$field];
-                } else {
-                    // check for subfields
-                    $parent = $field . '.';
-                    $length = strlen($parent);
-
-                    foreach ($propMap as $prop => $data) {
-                        if (substr($prop, 0, $length) === $parent) {
-                            $matches[$prop] = $data;
-                        }
-                    }
-
-                    if (count($matches) === 0) {
-                        throw new HttpException("'{$field}' is not a valid field", StatusCode::BAD_REQUEST);
-                    }
-                }
-
-                foreach ($matches as $prop => $data) {
-                    foreach ($data->dependsOn as $value) {
-                        $dependedOn[$value] = true;
-                    }
-
-                    $fieldProps[$prop] = $data;
-                }
-            }
-
-            foreach ($propMap as $prop => $data) {
-                if (isset($fieldProps[$prop])) {
-                    continue; // already selected
-                }
-
-                if ($data->nullGroup) {
-                    // check if any selected field is a child
-                    $parents = $data->parents;
-                    $parent = array_pop($parents);
-                    $length = strlen($parent);
-
-                    foreach ($fieldProps as $field => $_val) {
-                        if (substr($field, 0, $length) === $parent) {
-                            $dependedOn[$prop] = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        foreach ($propMap as $prop => $data) {
-            if (!isset($fieldProps[$prop]) && isset($dependedOn[$prop])) {
-                $data = clone $data;
-                $data->noOutput = true;
-                $fieldProps[$prop] = $data;
-            }
-        }
-
-        return $fieldProps;
-    }
-
-    /**
-     * @param array<string, PropArray> $map
-     * @return list<Prop>
-     * @internal
-     */
-    public static function rawPropMapToProps(array $map): array
-    {
-        $props = [];
-
-        foreach ($map as $name => $options) {
-            $props[] = new Prop(
-                $name,
-                $options['col'] ?? '',
-                $options['nullGroup'] ?? false,
-                !($options['notDefault'] ?? false),
-                $options['alias'] ?? '',
-                $options['type'] ?? null,
-                $options['timeZone'] ?? false,
-                $options['getValue'] ?? null,
-                $options['dependsOn'] ?? []
-            );
-        }
-
-        return $props;
-    }
-
-    /**
-     * @param Prop[] $map
-     * @internal
-     */
-    public static function propMapToSelectMap(array $map): array
-    {
-        $selectMap = [];
-
-        foreach ($map as $prop) {
-            /** @psalm-suppress EmptyArrayAccess */
-            $_ref = &$selectMap[$prop->map[0]];
-
-            for ($i = 1; $i < $prop->depth; $i++) {
-                /** @psalm-suppress MixedAssignment, MixedArrayAccess */
-                $_ref = &$_ref[$prop->map[$i]];
-            }
-
-            $_ref = $prop->col;
-            unset($_ref); // dereference
-        }
-
-        return $selectMap;
-    }
-
-    /**
-     * @param Prop[] $map
-     * @return Prop[]
-     * @internal
-     */
-    public static function propMapToAliasMap(array $map): array
-    {
-        $aliasMap = [];
-
-        foreach ($map as $prop) {
-            $aliasMap[$prop->getOutputCol()] = $prop;
-        }
-
-        return $aliasMap;
-    }
-
-    /**
-     * @return array<string, PropArray>
-     * @internal
-     */
-    public static function selectMapToPropMap(array $map, string $context = ''): array
-    {
-        $propMap = [];
-
-        if ($context !== '') {
-            $context .= '.';
-        }
-
-        /**
-         * @var string|array $val
-         */
-        foreach ($map as $key => $val) {
-            $newKey = $context . $key;
-
-            if (is_array($val)) {
-                $propMap = array_merge($propMap, self::selectMapToPropMap($val, $newKey));
-            } else {
-                $propMap[$newKey] = ['col' => $val];
-            }
-        }
-
-        return $propMap;
+        return Helpers::mapRows($select->query()->getIterator(), $fieldProps);
     }
 
     /**
