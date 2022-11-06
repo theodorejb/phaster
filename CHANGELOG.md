@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2022-11-06
+### Added
+- `getSelectProps` method as a preferred alternative to `getPropMap` when using PHP 8+.
+
+### Changed
+- Moved most internal methods to a separate class for improved code maintainability.
+
+### Deprecated
+- `getPropMap` method. Use `getSelectProps` instead.
+
 ## [2.3.0] - 2021-12-15
 ### Added
 - `getBaseSelect` method to support bound params in base select query.
@@ -122,7 +132,8 @@ return early if passed an empty IDs array.
 ### Changed
 - Initial stable release
 
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/theodorejb/phaster/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/theodorejb/phaster/compare/v2.2.2...v2.3.0
 [2.2.2]: https://github.com/theodorejb/phaster/compare/v2.2.1...v2.2.2
 [2.2.1]: https://github.com/theodorejb/phaster/compare/v2.2.0...v2.2.1
