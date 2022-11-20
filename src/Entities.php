@@ -103,6 +103,7 @@ abstract class Entities
 
     /**
      * Specify a friendly error message for constraint violations (when inserting/updating rows)
+     * @deprecated
      */
     protected function getDuplicateError(): string
     {
@@ -111,6 +112,7 @@ abstract class Entities
 
     /**
      * Specify a friendly error message for constraint violations (when attempting to delete rows)
+     * @deprecated
      */
     protected function getConstraintError(): string
     {
@@ -196,6 +198,7 @@ abstract class Entities
         try {
             return $this->db->deleteFrom($this->getTableName(), [$this->idColumn => $ids]);
         } catch (SqlException $e) {
+            /** @psalm-suppress DeprecatedMethod */
             $constraintError = $this->getConstraintError();
 
             if ($constraintError !== '' && $e->getSqlState() === '23000') {
@@ -270,6 +273,7 @@ abstract class Entities
 
     private function properException(SqlException $e): \Exception
     {
+        /** @psalm-suppress DeprecatedMethod */
         $duplicateError = $this->getDuplicateError();
 
         if ($duplicateError !== '' && $e->getSqlState() === '23000') {

@@ -5,20 +5,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Deprecated
+- `getDuplicateError()` and `getConstraintError()` methods. These tend to just result in unhelpful
+error messages which lack important details about why the conflict occurred. A better approach
+is to add custom checks and errors for conflicts that can occur during normal usage.
 
 ## [2.4.0] - 2022-11-06
 ### Added
-- `getSelectProps` method as a preferred alternative to `getPropMap` when using PHP 8+.
+- `getSelectProps()` method as a preferred alternative to `getPropMap()` when using PHP 8+.
 
 ### Changed
 - Moved most internal methods to a separate class for improved code maintainability.
 
 ### Deprecated
-- `getPropMap` method. Use `getSelectProps` instead.
+- `getPropMap()` method. Use `getSelectProps()` instead.
 
 ## [2.3.0] - 2021-12-15
 ### Added
-- `getBaseSelect` method to support bound params in base select query.
+- `getBaseSelect()` method to support bound params in base select query.
 
 ### Changed
 - `propertiesToColumns()` now optionally allows conversions with a partial column map.
@@ -35,18 +39,16 @@ This makes it possible to generate secondary filters using a subset of propertie
 
 ## [2.2.0] Primordial Refinement - 2020-03-22
 ### Added
-- `getOriginalFilter` method to `QueryOptions` for retrieving the
-unprocessed filter array.
+- `getOriginalFilter()` method to `QueryOptions` for retrieving the unprocessed filter array.
 
 ## [2.1.0] Benevolent Mystique - 2019-08-05
 ### Added
-- `processRow` method to alter a row directly before it is inserted or
+- `processRow()` method to alter a row directly before it is inserted or
 updated. Useful for setting columns that aren't in the property map.
 
 ### Changed
-- PUT and PATCH requests now return the number of affected rows, and
-no longer produce an error if no rows were affected (e.g. if the
-request didn't change the value of any property).
+- PUT and PATCH requests now return the number of affected rows, and no longer produce an error
+if no rows were affected (e.g. if the request didn't change the value of any property).
 - Excluded additional test files from production bundle.
 
 ## [2.0.0] Pressurized Arrangement - 2019-03-22
@@ -54,9 +56,8 @@ request didn't change the value of any property).
 - `$sort` parameter to `getEntitiesByIds()`.
 
 ### Changed
-- By default results are now ordered by the ID field.
-- `$fields` is now the second parameter of `getEntities()` instead of
-the last.
+- By default, results are now ordered by the ID field.
+- `$fields` is now the second parameter of `getEntities()` instead of the last.
 
 ### Removed
 - Previously deprecated `getBaseSelect()`, `getIdColumn()`, `getSelectId()`,
@@ -64,44 +65,39 @@ and `rowsToJson()` methods.
 
 ## [1.2.2] Pasteurized Recognition - 2019-03-04
 ### Fixed
-- `getById` route handler now respects `fields` parameter and only selects
+- `getById()` route handler now respects `fields` parameter and only selects
 the specified properties.
 
 ## [1.2.1] Reliant Progenitor - 2019-02-24
 ### Added
-- Support for specifying dependent fields along with `getValue` function.
+- Support for specifying dependent fields along with `getValue()` function.
 Dependents of requested fields that weren't explicitly requested, or
 aren't default, will still be selected but not output.
 
 ### Fixed
-- Properly check `nullGroup` properties nested multiple levels deep.
-For example, when selecting the field `a.b.c`, if `a` is a nullable
-group it will now be checked and set to null as expected. Previously
-only the direct parent of a selected field was checked.
+- Properly check `nullGroup` properties nested multiple levels deep. For example,
+when selecting the field `a.b.c`, if `a` is a nullable group it will now be checked and
+set to null as expected. Previously only the direct parent of a selected field was checked.
 
 ## [1.2.0] Emancipation Propagation - 2019-02-22
 ### Added
 - Default and maximum limit can now be configured for each search route.
 If not configured, these are set to 25 and 1000, respectively.
-- `getBaseQuery()` method, which has an `$options` parameter that an
-instance of `QueryOptions` is passed to. This makes it easy to only
-select specified field columns, and optionally customize the query based
-on which fields are selected or particular filter/sort values.
-- `getPropMap()` method, which allows merging additional property info
-with `getSelectMap()`. For example, a type or value getter function can
-be specified to determine how the property is output.
-- Optional `fields` parameter on `getEntityById()`, `getEntitiesByIds()`,
-and `getEntities()` methods. Takes an array of strings specifying which
-fields to select. If left empty all default properties will be selected.
+- `getBaseQuery()` method, which has an `$options` parameter that an instance of `QueryOptions`
+is passed to. This makes it easy to only select specified field columns, and optionally
+customize the query based on which fields are selected or particular filter/sort values.
+- `getPropMap()` method, which allows merging additional property info with `getSelectMap()`.
+For example, a type or value getter function can be specified to determine how the property is output.
+- Optional `fields` parameter on `getEntityById()`, `getEntitiesByIds()`, and `getEntities()` methods.
+Takes an array of strings specifying which fields to select.
+If left empty all default properties will be selected.
 
 ### Deprecated
 - `getBaseSelect()` - use `getBaseQuery()` instead.
-- `rowsToJson()` - mapped property information is now used to
-automatically output selected fields.
-- `getIdColumn()` and `getSelectId()` - set an `id` property in
-`getSelectMap()` or `getPropMap()` instead. If the select query uses a
-different ID column name than the table used for inserts/updates/deletes,
-override the table's ID column name by setting an `id` property in `getMap()`.
+- `rowsToJson()` - mapped property information is now used to automatically output selected fields.
+- `getIdColumn()` and `getSelectId()` - set an `id` property in `getSelectMap()` or `getPropMap()`
+instead. If the select query uses a different ID column name than the table used for
+inserts/updates/deletes, override the table's ID column name by setting an `id` property in `getMap()`.
 
 ## [1.1.1] Maximal Limitation - 2019-01-16
 ### Fixed
@@ -112,12 +108,10 @@ override the table's ID column name by setting an `id` property in `getMap()`.
 
 ## [1.1.0] Ambiguous Identity - 2019-01-11
 ### Added
-- `getSelectId()` method to optionally override the column used to
-get entities by ID. Necessary when a joined table has a column with
-the same name as the ID column.
-- Return `offset`, `limit`, and `lastPage` properties from search
-route handler. This makes it easy for API clients to see if there are
-more results to request.
+- `getSelectId()` method to optionally override the column used to get entities by ID.
+Necessary when a joined table has a column with the same name as the ID column.
+- Return `offset`, `limit`, and `lastPage` properties from search route handler.
+This makes it easy for API clients to see if there are more results to request.
 
 ## [1.0.2] Optimal Fixture - 2017-05-16
 ### Changed
