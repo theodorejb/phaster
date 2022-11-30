@@ -47,12 +47,14 @@ class Helpers
         $selectMap = [];
 
         foreach ($map as $prop) {
+            $key = $prop->map[0];
             /** @psalm-suppress EmptyArrayAccess */
-            $_ref = &$selectMap[$prop->map[0]];
+            $_ref = &$selectMap[$key];
 
             for ($i = 1; $i < $prop->depth; $i++) {
-                /** @psalm-suppress MixedAssignment, MixedArrayAccess */
-                $_ref = &$_ref[$prop->map[$i]];
+                $key = $prop->map[$i];
+                /** @psalm-suppress MixedArrayAccess */
+                $_ref = &$_ref[$key];
             }
 
             $_ref = $prop->col;
@@ -110,27 +112,30 @@ class Helpers
                     $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
                 }
 
+                $key = $prop->map[0];
                 /** @psalm-suppress EmptyArrayAccess */
-                $_ref = &$entity[$prop->map[0]];
+                $_ref = &$entity[$key];
 
                 for ($i = 1; $i < $prop->depth; $i++) {
-                    /** @psalm-suppress MixedAssignment, MixedArrayAccess */
-                    $_ref = &$_ref[$prop->map[$i]];
+                    $key = $prop->map[$i];
+                    /** @psalm-suppress MixedArrayAccess */
+                    $_ref = &$_ref[$key];
                 }
 
-                /** @psalm-suppress MixedAssignment */
                 $_ref = $value;
                 unset($_ref); // dereference
             }
 
             foreach ($nullParents as $prop) {
                 $depth = $prop->depth - 1;
+                $key = $prop->map[0];
                 /** @psalm-suppress EmptyArrayAccess */
-                $_ref = &$entity[$prop->map[0]];
+                $_ref = &$entity[$key];
 
                 for ($i = 1; $i < $depth; $i++) {
-                    /** @psalm-suppress MixedAssignment, MixedArrayAccess */
-                    $_ref = &$_ref[$prop->map[$i]];
+                    $key = $prop->map[$i];
+                    /** @psalm-suppress MixedArrayAccess */
+                    $_ref = &$_ref[$key];
                 }
 
                 $_ref = null;
