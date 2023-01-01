@@ -31,8 +31,11 @@ jobs:
           tools: psalm
           extensions: sqlsrv-5.10.1
 
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
       - name: Install Composer dependencies
-        run: composer install --no-progress --prefer-dist
+        run: composer install --no-progress
 
       - name: Run Psalm
         run: psalm --output-format=github
