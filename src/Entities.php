@@ -24,7 +24,6 @@ abstract class Entities
 
     protected PeachySql $db;
     protected string $idField = 'id';
-    private string $selectId;
     private string $idColumn;
     /** @var array<string, Prop> */
     private array $fullPropMap;
@@ -49,14 +48,13 @@ abstract class Entities
         }
 
         $map = $this->getMap();
-        $this->selectId = $propMap[$this->idField]->col;
 
         if (isset($map[$this->idField])) {
             /** @psalm-suppress MixedAssignment */
             $this->idColumn = $map[$this->idField];
             unset($map[$this->idField]); // prevent modifying identity column
         } else {
-            $idParts = explode('.', $this->selectId);
+            $idParts = explode('.', $propMap[$this->idField]->col);
             $this->idColumn = array_pop($idParts);
         }
 
