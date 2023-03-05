@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getDuplicateError()` and `getConstraintError()` methods. These tend to just result in unhelpful
 error messages which lack important details about why the conflict occurred. A better approach
 is to add custom checks and errors for conflicts that can occur during normal usage.
+- Unnecessary `QueryOptions` methods in favor of readonly properties.
 
 ## [2.4.0] - 2022-11-06
 ### Added

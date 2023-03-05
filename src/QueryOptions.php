@@ -4,13 +4,23 @@ declare(strict_types=1);
 
 namespace theodorejb\Phaster;
 
+/**
+ * @api
+ */
 class QueryOptions
 {
-    private array $filter;
-    private array $originalFilter;
-    private array $sort;
-    /** @var Prop[] */
-    private array $fieldProps;
+    /** @readonly */
+    public array $filter;
+    /** @readonly */
+    public array $originalFilter;
+    /** @readonly */
+    public array $sort;
+
+    /**
+     * @var Prop[]
+     * @readonly
+     */
+    public array $fieldProps;
 
     /**
      * @param Prop[] $fieldProps
@@ -23,22 +33,32 @@ class QueryOptions
         $this->fieldProps = $fieldProps;
     }
 
+    /**
+     * @deprecated Use readonly property instead
+     */
     public function getFilter(): array
     {
         return $this->filter;
     }
 
+    /**
+     * @deprecated Use readonly property instead
+     */
     public function getOriginalFilter(): array
     {
         return $this->originalFilter;
     }
 
+    /**
+     * @deprecated Use readonly property instead
+     */
     public function getSort(): array
     {
         return $this->sort;
     }
 
     /**
+     * @deprecated Use readonly property instead
      * @return Prop[]
      */
     public function getFieldProps(): array

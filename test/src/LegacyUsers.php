@@ -46,7 +46,7 @@ class LegacyUsers extends Entities
 
     protected function getBaseSelect(QueryOptions $options): SqlParams
     {
-        $originalFilter = $options->getOriginalFilter();
+        $originalFilter = $options->originalFilter;
         $customFilter = '';
         $params = [];
 
