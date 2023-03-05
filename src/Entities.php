@@ -212,7 +212,7 @@ abstract class Entities
      */
     public function updateById($id, array $data): int
     {
-        $row = self::allPropertiesToColumns($this->map, $this->processValues($data, [$id]));
+        $row = Helpers::allPropertiesToColumns($this->map, $this->processValues($data, [$id]));
         $row = $this->processRow($row, [$id]);
 
         try {
@@ -258,7 +258,7 @@ abstract class Entities
 
         foreach ($entities as $entity) {
             $data = array_replace_recursive($defaultValues, $entity);
-            $row = self::allPropertiesToColumns($this->map, $this->processValues($data, []));
+            $row = Helpers::allPropertiesToColumns($this->map, $this->processValues($data, []));
             $rows[] = $this->processRow($row, []);
         }
 
@@ -343,69 +343,6 @@ abstract class Entities
      */
     public static function propertiesToColumns(array $map, array $properties, bool $allowExtraProperties = false): array
     {
-        return self::propsToColumns($map, $properties, $allowExtraProperties, true);
-    }
-
-    /**
-     * Converts nested properties to an array of columns and values using a map. All properties in the map are required.
-     * @return array<string, mixed>
-     * @internal
-     */
-    public static function allPropertiesToColumns(array $map, array $properties): array
-    {
-        self::propsToColumns($properties, $map, false, false);
-        return self::propsToColumns($map, $properties, true, true);
-    }
-
-    /**
-     * @param array<string, mixed> $columns
-     * @return array<string, mixed>
-     */
-    private static function propsToColumns(array $map, array $properties, bool $allowExtraProperties, bool $buildColumns, string $context = '', array &$columns = []): array
-    {
-        if ($context !== '') {
-            $context .= '.';
-        }
-
-        foreach ($properties as $property => $value) {
-            $contextProp = $context . $property;
-
-            if (!array_key_exists($property, $map)) {
-                if ($allowExtraProperties) {
-                    continue;
-                }
-
-                $errMsg = $buildColumns ? 'Invalid' : 'Missing required';
-                throw new HttpException("{$errMsg} {$contextProp} property", StatusCode::BAD_REQUEST);
-            }
-
-            /** @var array|mixed $newMap */
-            $newMap = $map[$property]; // might be value
-
-            if (is_array($newMap)) {
-                if (!is_array($value)) {
-                    if ($buildColumns) {
-                        throw new HttpException("Expected {$contextProp} property to be an object, got " . gettype($value), StatusCode::BAD_REQUEST);
-                    } else {
-                        continue;
-                    }
-                }
-
-                self::propsToColumns($newMap, $value, $allowExtraProperties, $buildColumns, $contextProp, $columns);
-            } elseif ($buildColumns) {
-                if (!is_string($newMap)) {
-                    throw new \Exception('Map values must be arrays or strings, found ' . gettype($newMap) . " for {$contextProp} property");
-                }
-
-                if (array_key_exists($newMap, $columns)) {
-                    throw new \Exception("Column '{$newMap}' is mapped to more than one property ({$contextProp})");
-                }
-
-                /** @psalm-suppress MixedAssignment */
-                $columns[$newMap] = $value;
-            }
-        }
-
-        return $columns;
+        return Helpers::propsToColumns($map, $properties, $allowExtraProperties, true);
     }
 }

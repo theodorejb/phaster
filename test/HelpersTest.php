@@ -276,4 +276,68 @@ class HelpersTest extends TestCase
 
         $this->assertSame($expected, Helpers::propMapToAliasMap($propMap));
     }
+
+    public function testAllPropertiesToColumns(): void
+    {
+        $map =  [
+            'name' => 'UserName',
+            'client' => [
+                'id' => 'ClientID',
+            ],
+            'group' => [
+                'type' => [
+                    'id' => 'GroupTypeID',
+                ],
+            ],
+        ];
+
+        try {
+            Helpers::allPropertiesToColumns($map, []);
+            $this->fail('Failed to throw exception for missing property');
+        } catch (HttpException $e) {
+            $this->assertSame("Missing required name property", $e->getMessage());
+        }
+
+        try {
+            $missingClientId =  [
+                'name' => 'Test Name',
+                'client' => [],
+            ];
+
+            Helpers::allPropertiesToColumns($map, $missingClientId);
+            $this->fail('Failed to throw exception for missing property');
+        } catch (HttpException $e) {
+            $this->assertSame("Missing required client.id property", $e->getMessage());
+        }
+
+        try {
+            $missingGroupTypeId =  [
+                'name' => 'Test Name',
+                'client' => ['id' => null],
+                'group' => ['type' => []],
+            ];
+
+            Helpers::allPropertiesToColumns($map, $missingGroupTypeId);
+            $this->fail('Failed to throw exception for missing property');
+        } catch (HttpException $e) {
+            $this->assertSame("Missing required group.type.id property", $e->getMessage());
+        }
+
+        $valid = [
+            'name' => 'Test Name',
+            'client' => ['id' => null],
+            'group' => ['type' => ['id' => 234]],
+            'extra' => 'extra properties are valid when full map is required',
+        ];
+
+        $this->assertSame([], Helpers::allPropertiesToColumns([], $valid));
+
+        $expected = [
+            'UserName' => 'Test Name',
+            'ClientID' => null,
+            'GroupTypeID' => 234
+        ];
+
+        $this->assertSame($expected, Helpers::allPropertiesToColumns($map, $valid));
+    }
 }

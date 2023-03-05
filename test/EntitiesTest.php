@@ -6,7 +6,7 @@ namespace theodorejb\Phaster\Test;
 
 use PHPUnit\Framework\TestCase;
 use Teapot\HttpException;
-use theodorejb\Phaster\Entities;
+use theodorejb\Phaster\{Entities, Helpers};
 
 class EntitiesTest extends TestCase
 {
@@ -82,7 +82,7 @@ class EntitiesTest extends TestCase
             'BinaryColumn' => ['abc123', 1],
         ];
 
-        $this->assertSame($binaryExpectation, Entities::allPropertiesToColumns($binaryMap, $binaryObj));
+        $this->assertSame($binaryExpectation, Helpers::allPropertiesToColumns($binaryMap, $binaryObj));
     }
 
     public function testInvalidMap(): void
@@ -113,7 +113,7 @@ class EntitiesTest extends TestCase
         ];
 
         try {
-            Entities::allPropertiesToColumns($duplicateColumns, $properties);
+            Helpers::allPropertiesToColumns($duplicateColumns, $properties);
             $this->fail('Failed to throw exception for duplicate map column');
         } catch (\Exception $e) {
             $this->assertSame("Column 'TestCol' is mapped to more than one property (prop2.subProp)", $e->getMessage());
@@ -179,69 +179,5 @@ class EntitiesTest extends TestCase
         ];
 
         $this->assertSame($expected, Entities::propertiesToColumns($map, $partialProperties, true));
-    }
-
-    public function testAllPropertiesToColumns(): void
-    {
-        $map =  [
-            'name' => 'UserName',
-            'client' => [
-                'id' => 'ClientID',
-            ],
-            'group' => [
-                'type' => [
-                    'id' => 'GroupTypeID',
-                ],
-            ],
-        ];
-
-        try {
-            Entities::allPropertiesToColumns($map, []);
-            $this->fail('Failed to throw exception for missing property');
-        } catch (HttpException $e) {
-            $this->assertSame("Missing required name property", $e->getMessage());
-        }
-
-        try {
-            $missingClientId =  [
-                'name' => 'Test Name',
-                'client' => [],
-            ];
-
-            Entities::allPropertiesToColumns($map, $missingClientId);
-            $this->fail('Failed to throw exception for missing property');
-        } catch (HttpException $e) {
-            $this->assertSame("Missing required client.id property", $e->getMessage());
-        }
-
-        try {
-            $missingGroupTypeId =  [
-                'name' => 'Test Name',
-                'client' => ['id' => null],
-                'group' => ['type' => []],
-            ];
-
-            Entities::allPropertiesToColumns($map, $missingGroupTypeId);
-            $this->fail('Failed to throw exception for missing property');
-        } catch (HttpException $e) {
-            $this->assertSame("Missing required group.type.id property", $e->getMessage());
-        }
-
-        $valid = [
-            'name' => 'Test Name',
-            'client' => ['id' => null],
-            'group' => ['type' => ['id' => 234]],
-            'extra' => 'extra properties are valid when full map is required',
-        ];
-
-        $this->assertSame([], Entities::allPropertiesToColumns([], $valid));
-
-        $expected = [
-            'UserName' => 'Test Name',
-            'ClientID' => null,
-            'GroupTypeID' => 234
-        ];
-
-        $this->assertSame($expected, Entities::allPropertiesToColumns($map, $valid));
     }
 }
