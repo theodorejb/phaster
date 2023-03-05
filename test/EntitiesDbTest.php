@@ -18,7 +18,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @return list<array{0: PeachySql}>
      */
-    public function dbProvider(): array
+    public static function dbProvider(): array
     {
         $config = DbConnector::getConfig();
         $databases = [];
@@ -37,11 +37,11 @@ class EntitiesDbTest extends TestCase
     /**
      * @return list<array{0: Users}>
      */
-    public function entitiesProvider(): array
+    public static function entitiesProvider(): array
     {
         $list = [];
 
-        foreach ($this->dbProvider() as $db) {
+        foreach (self::dbProvider() as $db) {
             $list[] = [new Users($db[0])];
         }
 
@@ -51,11 +51,11 @@ class EntitiesDbTest extends TestCase
     /**
      * @return list<array{0: LegacyUsers}>
      */
-    public function legacyUsersProvider(): array
+    public static function legacyUsersProvider(): array
     {
         $list = [];
 
-        foreach ($this->dbProvider() as $db) {
+        foreach (self::dbProvider() as $db) {
             $list[] = [new LegacyUsers($db[0])];
         }
 
@@ -65,11 +65,11 @@ class EntitiesDbTest extends TestCase
     /**
      * @return list<array{0: ModernUsers, 1: PeachySql}>
      */
-    public function modernUsersProvider(): array
+    public static function modernUsersProvider(): array
     {
         $list = [];
 
-        foreach ($this->dbProvider() as $db) {
+        foreach (self::dbProvider() as $db) {
             $list[] = [new ModernUsers($db[0]), $db[0]];
         }
 
