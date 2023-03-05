@@ -7,6 +7,9 @@ namespace theodorejb\Phaster;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Teapot\{HttpException, StatusCode};
 
+/**
+ * @api
+ */
 class RouteHandler
 {
     private EntitiesFactory $entitiesFactory;

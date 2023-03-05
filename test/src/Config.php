@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test;
+namespace theodorejb\Phaster\Test\src;
 
 /**
  * Default test config. Values can be overridden with a LocalConfig child class.

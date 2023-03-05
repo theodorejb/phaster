@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use theodorejb\Phaster\Test\{DbConnector, Config, LocalConfig};
+use theodorejb\Phaster\Test\src\{DbConnector, Config, LocalConfig};
 
 require 'vendor/autoload.php';
 

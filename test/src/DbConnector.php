@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test;
+namespace theodorejb\Phaster\Test\src;
 
 use Exception;
 use mysqli;

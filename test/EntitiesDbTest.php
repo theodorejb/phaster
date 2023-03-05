@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster;
+namespace theodorejb\Phaster\Test;
 
 use PeachySQL\{Mysql, PeachySql, SqlServer};
 use PHPUnit\Framework\TestCase;
-use theodorejb\Phaster\Test\{DbConnector, Users, LegacyUsers, ModernUsers};
+use theodorejb\Phaster\Entities;
+use theodorejb\Phaster\Test\src\{DbConnector, Users, LegacyUsers, ModernUsers};
 
 class EntitiesDbTest extends TestCase
 {
