@@ -50,4 +50,13 @@ class ModernUsers extends Entities
                 FROM vUsers u
                 LEFT JOIN UserThings ut ON ut.user_id = u.u_id";
     }
+
+    protected function processValues(array $data, array $ids): array
+    {
+        if (count($ids) === 0 && $data['name'] === 'Modern user 3') {
+            $data['name'] = 'Modern user 3 modified';
+        }
+
+        return $data;
+    }
 }

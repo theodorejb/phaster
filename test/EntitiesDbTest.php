@@ -357,7 +357,7 @@ class EntitiesDbTest extends TestCase
             ],
             [
                 'id' => $ids[2],
-                'name' => 'Modern user 3',
+                'name' => 'Modern user 3 modified',
                 'isDisabled' => false,
                 'weight' => 30.0,
                 'thing' => null,
