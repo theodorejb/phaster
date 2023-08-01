@@ -206,11 +206,13 @@ class HelpersTest extends TestCase
             $this->assertSame("' username' is not a valid field", $e->getMessage());
         }
 
-        // test dependent field marked as not default
+        // test dependent fields marked as not default or excluded from output
+        $dependencies = ['username', 'client.secret'];
         $rawPropMap = [
             'username' => ['col' => 'UserName', 'notDefault' => true],
-            'client.id' => ['col' => 'ClientID', 'nullGroup' => true, 'getValue' => $valueGetter, 'dependsOn' => ['username']],
+            'client.id' => ['col' => 'ClientID', 'nullGroup' => true, 'getValue' => $valueGetter, 'dependsOn' => $dependencies],
             'client.name' => ['col' => 'Company', 'alias' => 'ClientName'],
+            'client.secret' => ['col' => 'Secret', 'output' => false],
         ];
 
         $props = Helpers::rawPropMapToProps($rawPropMap);
@@ -224,11 +226,12 @@ class HelpersTest extends TestCase
         $this->assertTrue($actual['client.id']->noOutput);
 
         // username should be selected even though it isn't default since client.id is marked as dependent on it
-        $expected = ['client.id', 'client.name', 'username'];
+        $expected = ['client.id', 'client.name', 'client.secret', 'username'];
         $actual = Helpers::getFieldPropMap([], $propMap);
         $this->assertSame($expected, array_keys($actual));
         $this->assertFalse($actual['client.id']->noOutput);
         $this->assertFalse($actual['client.name']->noOutput);
+        $this->assertTrue($actual['client.secret']->noOutput);
         $this->assertTrue($actual['username']->noOutput);
     }
 

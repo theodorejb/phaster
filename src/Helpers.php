@@ -254,7 +254,8 @@ class Helpers
                 $options['type'] ?? null,
                 $options['timeZone'] ?? false,
                 $options['getValue'] ?? null,
-                $options['dependsOn'] ?? []
+                $options['dependsOn'] ?? [],
+                $options['output'] ?? true
             );
         }
 

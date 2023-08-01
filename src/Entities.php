@@ -12,7 +12,7 @@ use Teapot\{HttpException, StatusCode};
 /**
  * @psalm-type PropArray = array{
  *     col?: string, nullGroup?: bool, notDefault?: bool, alias?: string, type?: string,
- *     timeZone?: \DateTimeZone|null, getValue?: callable|null, dependsOn?: list<string>
+ *     timeZone?: \DateTimeZone|null, getValue?: callable|null, dependsOn?: list<string>, output?: bool
  * }
  */
 abstract class Entities

@@ -41,8 +41,9 @@ class Prop
 
     /**
      * This is the only property which can be modified externally.
+     * @internal
      */
-    public bool $noOutput = false;
+    public bool $noOutput;
 
     /**
      * @var string[]
@@ -71,7 +72,8 @@ class Prop
         ?string $type = null,
         $timeZone = false,
         ?callable $getValue = null,
-        array $dependsOn = []
+        array $dependsOn = [],
+        bool $output = true
     ) {
         $this->map = explode('.', $name);
         $this->depth = count($this->map);
@@ -121,6 +123,7 @@ class Prop
         $this->dependsOn = $dependsOn;
         $this->nullGroup = $nullGroup;
         $this->isDefault = $isDefault;
+        $this->noOutput = !$output;
     }
 
     public function getOutputCol(): string
