@@ -30,10 +30,16 @@ class ModernUsers extends Entities
 
     protected function getSelectProps(): array
     {
+        $getValue = function (array $row): float {
+            /** @var array{weight: int} $row */
+            return $row['weight'] + 1;
+        };
+
         return [
             new Prop('id', 'u.u_id'),
             new Prop('name', 'name', false, true, 'username'),
             new Prop('isDisabled', 'isDisabled', false, true, '', 'bool'),
+            new Prop('computed', '', false, true, '', null, false, $getValue, ['weight']),
             new Prop('thing.id', 'ut.thing_id', true),
             new Prop('thing.uid', 'ut.user_id', false, true, 'thing_user'),
         ];

@@ -68,18 +68,22 @@ class QueryOptions
 
     public function getColumns(): string
     {
-        $columns = [];
+        $columns = '';
 
         foreach ($this->fieldProps as $prop) {
-            $col = $prop->col;
-
-            if ($prop->alias) {
-                $col .= ' AS ' . $prop->alias;
+            if ($prop->col === '') {
+                continue;
             }
 
-            $columns[] = $col;
+            $columns .= $prop->col;
+
+            if ($prop->alias) {
+                $columns .= ' AS ' . $prop->alias;
+            }
+
+            $columns .= ', ';
         }
 
-        return implode(', ', $columns);
+        return substr($columns, 0, -2);
     }
 }

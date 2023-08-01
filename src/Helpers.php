@@ -83,9 +83,20 @@ class Helpers
             /** @var Prop[] $nullParents */
             $nullParents = [];
 
-            /** @var mixed $value */
-            foreach ($row as $colName => $value) {
-                $prop = $aliasMap[$colName];
+            foreach ($aliasMap as $colName => $prop) {
+                if ($prop->getValue) {
+                    /** @var mixed $value */
+                    $value = ($prop->getValue)($row);
+                } else {
+                    /** @var mixed $value */
+                    $value = $row[$colName];
+
+                    if ($prop->type) {
+                        settype($value, $prop->type);
+                    } elseif (is_string($value) && $prop->timeZone !== false) {
+                        $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
+                    }
+                }
 
                 if ($prop->nullGroup && $value === null) {
                     // only add if there isn't a higher-level null parent
@@ -101,15 +112,6 @@ class Helpers
                     continue;
                 } elseif ($prop->noOutput) {
                     continue;
-                }
-
-                if ($prop->getValue) {
-                    /** @var mixed $value */
-                    $value = ($prop->getValue)($row);
-                } elseif ($prop->type) {
-                    settype($value, $prop->type);
-                } elseif (is_string($value) && $prop->timeZone !== false) {
-                    $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
                 }
 
                 $key = $prop->map[0];
@@ -236,14 +238,14 @@ class Helpers
 
     /**
      * @param array<string, PropArray> $map
-     * @return list<Prop>
+     * @return array<string, Prop>
      */
     public static function rawPropMapToProps(array $map): array
     {
         $props = [];
 
         foreach ($map as $name => $options) {
-            $props[] = new Prop(
+            $props[$name] = new Prop(
                 $name,
                 $options['col'] ?? '',
                 $options['nullGroup'] ?? false,
@@ -260,7 +262,7 @@ class Helpers
     }
 
     /**
-     * @param list<Prop> $props
+     * @param array<Prop> $props
      * @return array<string, Prop>
      */
     public static function propListToPropMap(array $props): array

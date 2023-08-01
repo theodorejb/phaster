@@ -262,6 +262,8 @@ class HelpersTest extends TestCase
             'username' => ['col' => 'a.UserName'],
             'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'isClientDisabled', 'type' => 'bool'],
             'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => $utc],
+            'computed' => ['getValue' => fn(array $_): bool => true],
+            'computed2' => ['alias' => 'aliased', 'getValue' => fn(array $_): bool => false],
         ];
 
         $props = Helpers::rawPropMapToProps($rawPropMap);
@@ -272,6 +274,8 @@ class HelpersTest extends TestCase
             'UserName' => $propMap['username'],
             'isClientDisabled' => $propMap['client.isDisabled'],
             'DateCreatedUTC' => $propMap['dateCreated'],
+            'computed' => $propMap['computed'],
+            'aliased' => $propMap['computed2'],
         ];
 
         $this->assertSame($expected, Helpers::propMapToAliasMap($propMap));

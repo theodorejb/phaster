@@ -37,11 +37,15 @@ abstract class Entities
         /** @var array<string, PropArray> $rawPropMap */
         $rawPropMap = array_replace_recursive(Helpers::selectMapToPropMap($this->getSelectMap()), $legacyPropMap);
         $bcProps = Helpers::rawPropMapToProps($rawPropMap);
+        $selectProps = $this->getSelectProps();
 
-        $propMap = array_replace(
-            Helpers::propListToPropMap($bcProps),
-            Helpers::propListToPropMap($this->getSelectProps()),
-        );
+        foreach ($selectProps as $prop) {
+            if (isset($bcProps[$prop->name])) {
+                unset($bcProps[$prop->name]);
+            }
+        }
+
+        $propMap = Helpers::propListToPropMap([...array_values($bcProps), ...$selectProps]);
 
         if (!isset($propMap[$this->idField])) {
             throw new \Exception('Missing required id property in map');

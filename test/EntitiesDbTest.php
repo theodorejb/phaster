@@ -344,13 +344,14 @@ class EntitiesDbTest extends TestCase
         $ids = $entities->addEntities($users);
         $db->insertRow('UserThings', ['user_id' => $ids[3]]);
 
-        $actual = $entities->getEntitiesByIds([$ids[2], $ids[3]], ['id', 'name', 'isDisabled', 'weight', 'thing.uid']);
+        $actual = $entities->getEntitiesByIds([$ids[2], $ids[3]], ['id', 'name', 'isDisabled', 'computed', 'weight', 'thing.uid']);
 
         $expected = [
             [
                 'id' => $ids[3],
                 'name' => 'Modern user 4',
                 'isDisabled' => false,
+                'computed' => 41.0,
                 'weight' => 40.0,
                 'thing' => [
                     'uid' => $ids[3],
@@ -360,6 +361,7 @@ class EntitiesDbTest extends TestCase
                 'id' => $ids[2],
                 'name' => 'Modern user 3 modified',
                 'isDisabled' => false,
+                'computed' => 31.0,
                 'weight' => 30.0,
                 'thing' => null,
             ],

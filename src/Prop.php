@@ -64,7 +64,7 @@ class Prop
      */
     public function __construct(
         string $name,
-        string $col,
+        string $col = '',
         bool $nullGroup = false,
         bool $isDefault = true,
         string $alias = '',
@@ -86,7 +86,13 @@ class Prop
             throw new \Exception("nullGroup cannot be set on top-level {$name} property");
         }
 
-        if ($getValue !== null) {
+        if ($getValue === null) {
+            if ($col === '') {
+                throw new \Exception("col cannot be blank on {$name} property without getValue function");
+            } elseif (count($dependsOn) !== 0) {
+                throw new \Exception("dependsOn cannot be used on {$name} property without getValue function");
+            }
+        } else {
             if ($type !== null) {
                 throw new \Exception("type cannot be set on {$name} property along with getValue");
             } elseif ($timeZone !== false) {
@@ -106,10 +112,6 @@ class Prop
             }
         }
 
-        if (count($dependsOn) !== 0 && $getValue === null) {
-            throw new \Exception("dependsOn cannot be used on {$name} property without getValue function");
-        }
-
         $this->name = $name;
         $this->col = $col;
         $this->alias = $alias;
@@ -125,6 +127,8 @@ class Prop
     {
         if ($this->alias) {
             return $this->alias;
+        } elseif ($this->col === '') {
+            return $this->name;
         }
 
         $col = explode('.', $this->col);
