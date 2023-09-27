@@ -143,7 +143,9 @@ class RouteHandler
                 /** @var list<array> $data */
                 $body = ['ids' => $instance->addEntities($data)];
             } else {
-                $body = ['id' => $instance->addEntities([$data])[0]];
+                $ids = $instance->addEntities([$data]);
+                // ID isn't set when the ID column isn't auto-incremented
+                $body = ['id' => $ids[0] ?? $data[$instance->idField]];
             }
 
             $response->getBody()->write(json_encode($body));

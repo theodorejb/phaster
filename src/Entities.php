@@ -23,7 +23,8 @@ abstract class Entities
     abstract protected function getMap(): array;
 
     protected PeachySql $db;
-    protected string $idField = 'id';
+    public string $idField = 'id';
+    protected bool $writableId = false;
     private string $idColumn;
     /** @var array<string, Prop> */
     private array $fullPropMap;
@@ -56,7 +57,10 @@ abstract class Entities
         if (isset($map[$this->idField])) {
             /** @psalm-suppress MixedAssignment */
             $this->idColumn = $map[$this->idField];
-            unset($map[$this->idField]); // prevent modifying identity column
+
+            if (!$this->writableId) {
+                unset($map[$this->idField]); // prevent modifying identity column
+            }
         } else {
             $idParts = explode('.', $propMap[$this->idField]->col);
             $this->idColumn = array_pop($idParts);

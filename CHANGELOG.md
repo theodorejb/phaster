@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2023-09-27
+### Added
+- `writableId` bool property to optionally make the ID column writable.
+
 ## [2.6.0] - 2023-08-01
 ### Added
 - `output` bool parameter on `Prop` constructor.
@@ -142,7 +146,8 @@ return early if passed an empty IDs array.
 ### Changed
 - Initial stable release
 
-[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.6.0...HEAD
+[Unreleased]: https://github.com/theodorejb/phaster/compare/v2.7.0...HEAD
+[2.7.0]: https://github.com/theodorejb/phaster/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/theodorejb/phaster/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/theodorejb/phaster/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/theodorejb/phaster/compare/v2.3.0...v2.4.0
