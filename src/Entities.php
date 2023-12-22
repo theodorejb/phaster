@@ -345,6 +345,24 @@ abstract class Entities
         return Helpers::mapRows($select->query()->getIterator(), $fieldProps);
     }
 
+    public function countEntities(array $filter = []): int
+    {
+        $processedFilter = $this->processFilter($filter);
+        $selectMap = Helpers::propMapToSelectMap($this->fullPropMap);;
+
+        $prop = new Prop('count', 'COUNT(*)', false, true, 'count');
+        $queryOptions = new QueryOptions($processedFilter, $filter, [], [$prop]);
+
+        /** @psalm-suppress MixedArgumentTypeCoercion */
+        $select = $this->db->select($this->getBaseSelect($queryOptions))
+            ->where(self::propertiesToColumns($selectMap, $processedFilter));
+
+        /** @var array{count: int} $row */
+        $row = $select->query()->getFirst();
+
+        return $row['count'];
+    }
+
     /**
      * Converts nested properties to an array of columns and values using a map.
      * @return array<string, mixed>

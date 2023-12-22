@@ -104,6 +104,35 @@ class RouteHandler
     /**
      * @param class-string<Entities> $class
      */
+    public function count(string $class): callable
+    {
+        $factory = $this->entitiesFactory;
+
+        return function (ServerRequestInterface $request, ResponseInterface $response) use ($class, $factory): ResponseInterface {
+            $query = [];
+
+            foreach ($request->getQueryParams() as $param => $value) {
+                if ($param !== 'q') {
+                    throw new HttpException("Unrecognized parameter '{$param}'", StatusCode::BAD_REQUEST);
+                }
+                if (!is_array($value)) {
+                    throw new HttpException("Parameter '{$param}' must be an array", StatusCode::BAD_REQUEST);
+                }
+
+                $query = $value;
+            }
+
+            $instance = $factory->createEntities($class);
+            $count = $instance->countEntities($query);
+
+            $response->getBody()->write(json_encode(['count' => $count]));
+            return $response->withHeader('Content-Type', 'application/json');
+        };
+    }
+
+    /**
+     * @param class-string<Entities> $class
+     */
     public function getById(string $class): callable
     {
         $factory = $this->entitiesFactory;

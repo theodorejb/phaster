@@ -292,6 +292,26 @@ class EntitiesDbTest extends TestCase
     }
 
     /**
+     * @dataProvider entitiesProvider
+     */
+    public function testCountEntities(Entities $entities): void
+    {
+        $users = [];
+
+        for ($i = 1; $i <= 20; $i++) {
+            $users[] = [
+                'name' => "Count user {$i}",
+                'birthday' => '2000-03-04',
+                'weight' => $i * 10,
+            ];
+        }
+
+        $entities->addEntities($users);
+        $actual = $entities->countEntities(['weight' => ['le' => 100], 'name' => ['lk' => 'Count user %']]);
+        $this->assertSame(10, $actual);
+    }
+
+    /**
      * @dataProvider legacyUsersProvider
      */
     public function testLegacyUsers(Entities $entities): void
