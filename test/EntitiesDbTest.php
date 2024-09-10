@@ -362,6 +362,8 @@ class EntitiesDbTest extends TestCase
         }
 
         $ids = $entities->addEntities($users);
+        $this->assertSame(-42, $ids[1]); // manually set ID in processValues
+
         $db->insertRow('UserThings', ['user_id' => $ids[3]]);
 
         $actual = $entities->getEntitiesByIds([$ids[2], $ids[3]], ['id', 'name', 'isDisabled', 'computed', 'weight', 'thing.uid']);

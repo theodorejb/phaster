@@ -59,8 +59,12 @@ class ModernUsers extends Entities
 
     protected function processValues(array $data, array $ids): array
     {
-        if (count($ids) === 0 && $data['name'] === 'Modern user 3') {
-            $data['name'] = 'Modern user 3 modified';
+        if (count($ids) === 0) {
+            if ($data['name'] === 'Modern user 3') {
+                $data['name'] = 'Modern user 3 modified';
+            } elseif ($data['name'] === 'Modern user 2') {
+                $data['id'] = -42; // don't insert row for this item
+            }
         }
 
         return $data;

@@ -263,15 +263,32 @@ abstract class Entities
 
         $defaultValues = $this->getDefaultValues();
         $rows = [];
+        $existingIds = [];
 
-        foreach ($entities as $entity) {
-            $data = array_replace_recursive($defaultValues, $entity);
-            $row = Helpers::allPropertiesToColumns($this->map, $this->processValues($data, []));
-            $rows[] = $this->processRow($row, []);
+        foreach ($entities as $key => $entity) {
+            unset($entity[$this->idField]); // any ID posted to API should be ignored
+            $entity = array_replace_recursive($defaultValues, $entity);
+            $entity = $this->processValues($entity, []);
+
+            // if processValues sets an ID for an existing item, don't insert a new row for it
+            if (isset($entity[$this->idField])) {
+                $id = $entity[$this->idField];
+                if (!is_int($id)) {
+                    throw new \Exception('ID value set by processValues must be an integer');
+                }
+                $existingIds[$key] = $id;
+            } else {
+                $row = Helpers::allPropertiesToColumns($this->map, $entity);
+                $rows[] = $this->processRow($row, []);
+            }
         }
 
         try {
-            return $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->getIds();
+            $ids = $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->getIds();
+            foreach ($existingIds as $offset => $id) {
+                array_splice($ids, $offset, 0, [$id]);
+            }
+            return $ids;
         } catch (SqlException $e) {
             throw $this->properException($e);
         }
