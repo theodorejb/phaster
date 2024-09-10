@@ -84,14 +84,14 @@ class Helpers
             $nullParents = [];
 
             foreach ($aliasMap as $colName => $prop) {
-                if ($prop->getValue) {
+                if ($prop->getValue !== null) {
                     /** @var mixed $value */
                     $value = ($prop->getValue)($row);
                 } else {
                     /** @var mixed $value */
                     $value = $row[$colName];
 
-                    if ($prop->type) {
+                    if ($prop->type !== null) {
                         settype($value, $prop->type);
                     } elseif (is_string($value) && $prop->timeZone !== false) {
                         $value = (new \DateTimeImmutable($value, $prop->timeZone))->format(\DateTime::ATOM);
