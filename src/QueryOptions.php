@@ -9,29 +9,15 @@ namespace theodorejb\Phaster;
  */
 class QueryOptions
 {
-    /** @readonly */
-    public array $filter;
-    /** @readonly */
-    public array $originalFilter;
-    /** @readonly */
-    public array $sort;
-
-    /**
-     * @var Prop[]
-     * @readonly
-     */
-    public array $fieldProps;
-
     /**
      * @param Prop[] $fieldProps
      */
-    public function __construct(array $filter, array $originalFilter, array $sort, array $fieldProps)
-    {
-        $this->filter = $filter;
-        $this->originalFilter = $originalFilter;
-        $this->sort = $sort;
-        $this->fieldProps = $fieldProps;
-    }
+    public function __construct(
+        public readonly array $filter,
+        public readonly array $originalFilter,
+        public readonly array $sort,
+        public readonly array $fieldProps
+    ) {}
 
     public function getColumns(): string
     {

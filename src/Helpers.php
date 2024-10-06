@@ -109,7 +109,7 @@ class Helpers
 
                     $nullParents[$parent] = $prop;
                     continue;
-                } elseif ($prop->noOutput) {
+                } elseif (!$prop->output) {
                     continue;
                 }
 
@@ -227,7 +227,7 @@ class Helpers
         foreach ($propMap as $prop => $data) {
             if (!isset($fieldProps[$prop]) && isset($dependedOn[$prop])) {
                 $data = clone $data;
-                $data->noOutput = true;
+                $data->output = false;
                 $fieldProps[$prop] = $data;
             }
         }

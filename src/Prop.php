@@ -4,85 +4,54 @@ declare(strict_types=1);
 
 namespace theodorejb\Phaster;
 
+use Closure;
 use DateTimeZone;
 
 class Prop
 {
-    /** @readonly */
-    public string $name;
-    /** @readonly */
-    public string $col;
-    /** @readonly */
-    public string $alias;
-
-    /**
-     * @var callable|null
-     * @readonly
-     */
-    public $getValue;
-    /** @readonly */
-    public ?string $type = null;
-
-    /**
-     * @var DateTimeZone|null|false
-     * @readonly
-     */
-    public $timeZone;
-
-    /**
-     * @var string[]
-     * @readonly
-     */
-    public array $dependsOn;
-    /** @readonly */
-    public bool $nullGroup;
-    /** @readonly */
-    public bool $isDefault;
-
     /**
      * This is the only property which can be modified externally.
      * @internal
      */
-    public bool $noOutput;
+    public bool $output;
 
     /**
      * @var string[]
-     * @readonly
      */
-    public array $map;
-    /** @readonly */
-    public int $depth;
+    public readonly array $map;
+    public readonly int $depth;
 
     /**
      * @var string[]
-     * @readonly
      */
-    public array $parents = [];
+    public readonly array $parents;
 
     /**
-     * @param DateTimeZone|null|false $timeZone
      * @param string[] $dependsOn
      */
     public function __construct(
-        string $name,
-        string $col = '',
-        bool $nullGroup = false,
-        bool $isDefault = true,
-        string $alias = '',
-        ?string $type = null,
-        $timeZone = false,
-        ?callable $getValue = null,
-        array $dependsOn = [],
+        public readonly string $name,
+        public readonly string $col = '',
+        public readonly bool $nullGroup = false,
+        public readonly bool $isDefault = true,
+        public readonly string $alias = '',
+        public readonly ?string $type = null,
+        public readonly DateTimeZone|null|false $timeZone = false,
+        public readonly ?Closure $getValue = null,
+        public readonly array $dependsOn = [],
         bool $output = true
     ) {
+        $this->output = $output;
         $this->map = explode('.', $name);
         $this->depth = count($this->map);
         $parent = '';
+        $parents = [];
 
         for ($i = 0; $i < $this->depth - 1; $i++) {
             $parent .= $this->map[$i] . '.';
-            $this->parents[] = $parent;
+            $parents[] = $parent;
         }
+        $this->parents = $parents;
 
         if ($nullGroup && $this->depth < 2) {
             throw new \Exception("nullGroup cannot be set on top-level {$name} property");
@@ -113,17 +82,6 @@ class Prop
                 throw new \Exception("timeZone cannot be set on {$name} property along with type");
             }
         }
-
-        $this->name = $name;
-        $this->col = $col;
-        $this->alias = $alias;
-        $this->getValue = $getValue;
-        $this->type = $type;
-        $this->timeZone = $timeZone;
-        $this->dependsOn = $dependsOn;
-        $this->nullGroup = $nullGroup;
-        $this->isDefault = $isDefault;
-        $this->noOutput = !$output;
     }
 
     public function getOutputCol(): string

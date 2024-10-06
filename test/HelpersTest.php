@@ -163,8 +163,8 @@ class HelpersTest extends TestCase
         $expected = ['client.isDisabled', 'groupName', 'client.id'];
         $actual = Helpers::getFieldPropMap(['client.isDisabled', 'groupName'], $propMap);
         $this->assertSame($expected, array_keys($actual));
-        $this->assertFalse($actual['groupName']->noOutput);
-        $this->assertTrue($actual['client.id']->noOutput);
+        $this->assertTrue($actual['groupName']->output);
+        $this->assertFalse($actual['client.id']->output);
 
         $expected = [
             'client.id' => $propMap['client.id'],
@@ -189,8 +189,8 @@ class HelpersTest extends TestCase
         $expected = ['groupName', 'client.name'];
         $actual = Helpers::getFieldPropMap(['groupName'], $propMap);
         $this->assertSame($expected, array_keys($actual));
-        $this->assertFalse($actual['groupName']->noOutput);
-        $this->assertTrue($actual['client.name']->noOutput);
+        $this->assertTrue($actual['groupName']->output);
+        $this->assertFalse($actual['client.name']->output);
 
         try {
             Helpers::getFieldPropMap(['group.test'], $propMap);
@@ -221,17 +221,17 @@ class HelpersTest extends TestCase
         $expected = ['client.name', 'client.id'];
         $actual = Helpers::getFieldPropMap(['client.name'], $propMap);
         $this->assertSame($expected, array_keys($actual));
-        $this->assertFalse($actual['client.name']->noOutput);
-        $this->assertTrue($actual['client.id']->noOutput);
+        $this->assertTrue($actual['client.name']->output);
+        $this->assertFalse($actual['client.id']->output);
 
         // username should be selected even though it isn't default since client.id is marked as dependent on it
         $expected = ['client.id', 'client.name', 'client.secret', 'username'];
         $actual = Helpers::getFieldPropMap([], $propMap);
         $this->assertSame($expected, array_keys($actual));
-        $this->assertFalse($actual['client.id']->noOutput);
-        $this->assertFalse($actual['client.name']->noOutput);
-        $this->assertTrue($actual['client.secret']->noOutput);
-        $this->assertTrue($actual['username']->noOutput);
+        $this->assertTrue($actual['client.id']->output);
+        $this->assertTrue($actual['client.name']->output);
+        $this->assertFalse($actual['client.secret']->output);
+        $this->assertFalse($actual['username']->output);
     }
 
     public function testPropListToPropMap(): void
