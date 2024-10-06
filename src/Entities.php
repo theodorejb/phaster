@@ -215,10 +215,7 @@ abstract class Entities
         }
     }
 
-    /**
-     * @param int|string $id
-     */
-    public function updateById($id, array $data): int
+    public function updateById(int|string $id, array $data): int
     {
         $row = Helpers::allPropertiesToColumns($this->map, $this->processValues($data, [$id]));
         $row = $this->processRow($row, [$id]);
@@ -307,10 +304,9 @@ abstract class Entities
     }
 
     /**
-     * @param int|string $id
      * @param string[] $fields
      */
-    public function getEntityById($id, array $fields = []): array
+    public function getEntityById(int|string $id, array $fields = []): array
     {
         $entities = $this->getEntitiesByIds([$id], $fields);
 
