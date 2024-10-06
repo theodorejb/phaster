@@ -28,15 +28,15 @@ class HelpersTest extends TestCase
     public function testSelectMapToPropMap(): void
     {
         $expected = [
-            'name' => ['col' => 'UserName'],
-            'client.id' => ['col' => 'ClientID'],
-            'client.name' => ['col' => 'ClientName'],
-            'client.isDisabled' => ['col' => 'isDisabled'],
-            'group.type.id' => ['col' => 'GroupTypeID'],
-            'group.type.name' => ['col' => 'GroupName'],
+            'name' => new Prop('name', 'UserName'),
+            'client.id' => new Prop('client.id', 'ClientID'),
+            'client.name' => new Prop('client.name', 'ClientName'),
+            'client.isDisabled' => new Prop('client.isDisabled', 'isDisabled'),
+            'group.type.id' => new Prop('group.type.id', 'GroupTypeID'),
+            'group.type.name' => new Prop('group.type.name', 'GroupName'),
         ];
 
-        $this->assertSame($expected, Helpers::selectMapToPropMap($this->propertyMap));
+        $this->assertEquals($expected, Helpers::selectMapToPropMap($this->propertyMap));
     }
 
     public function testPropMapToSelectMap(): void
@@ -59,13 +59,13 @@ class HelpersTest extends TestCase
         /** @psalm-suppress MixedInferredReturnType, MixedReturnStatement */
         $usernameMapper = fn(array $row): string => ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
 
-        $rawPropMap = [
-            'id' => ['col' => 'UserID'],
-            'username' => ['col' => 'a.UserName', 'getValue' => $usernameMapper, 'dependsOn' => ['id']],
-            'client.id' => ['col' => 'a.ClientID'],
-            'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'Disabled', 'type' => 'bool'],
-            'client.type.id' => ['col' => 'TypeID', 'nullGroup' => true],
-            'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => new \DateTimeZone('UTC')],
+        $props = [
+            new Prop('id', 'UserID'),
+            new Prop('username', 'a.UserName', getValue: $usernameMapper, dependsOn: ['id']),
+            new Prop('client.id', 'a.ClientID'),
+            new Prop('client.isDisabled', 'c.isDisabled', alias: 'Disabled', type: 'bool'),
+            new Prop('client.type.id', 'TypeID', nullGroup: true),
+            new Prop('dateCreated', 'DateCreatedUTC', timeZone: new \DateTimeZone('UTC')),
         ];
 
         // test mapping all fields with nullable client.type group
@@ -81,7 +81,6 @@ class HelpersTest extends TestCase
             ['id' => 1, 'username' => 'testUser', 'client' => ['id' => null, 'isDisabled' => false, 'type' => null], 'dateCreated' => null],
         ];
 
-        $props = Helpers::rawPropMapToProps($rawPropMap);
         $propMap = Helpers::propListToPropMap($props);
         $this->assertSame($expected, Helpers::mapRows($generator(), $propMap));
 
@@ -114,8 +113,7 @@ class HelpersTest extends TestCase
             ['id' => 1, 'username' => 'testUser', 'client' => null, 'dateCreated' => null],
         ];
 
-        $rawPropMap['client.id']['nullGroup'] = true;
-        $props = Helpers::rawPropMapToProps($rawPropMap);
+        $props[2] = new Prop('client.id', 'a.ClientID', nullGroup: true);
         $propMap = Helpers::propListToPropMap($props);
         $fieldProps = Helpers::getFieldPropMap(['id', 'username', 'client.isDisabled', 'dateCreated'], $propMap);
         $this->assertSame($expected, Helpers::mapRows($generator(), $fieldProps));
@@ -139,17 +137,16 @@ class HelpersTest extends TestCase
 
     public function testGetFieldPropMap(): void
     {
-        $rawPropMap = [
-            'username' => ['col' => 'UserName', 'notDefault' => true],
-            'client.id' => ['col' => 'ClientID', 'nullGroup' => true],
-            'client.name' => ['col' => 'Company', 'alias' => 'ClientName'],
-            'client.isDisabled' => ['col' => 'isDisabled'],
-            'group.type.id' => ['col' => 'GroupTypeID'],
-            'group.type.name' => ['col' => 'GroupName'],
-            'groupName' => ['col' => 'DiffGroupName'],
+        $props = [
+            new Prop('username', 'UserName', isDefault: false),
+            new Prop('client.id', 'ClientID', nullGroup: true),
+            new Prop('client.name', 'Company', alias: 'ClientName'),
+            new Prop('client.isDisabled', 'isDisabled'),
+            new Prop('group.type.id', 'GroupTypeID'),
+            new Prop('group.type.name', 'GroupName'),
+            new Prop('groupName', 'DiffGroupName'),
         ];
 
-        $props = Helpers::rawPropMapToProps($rawPropMap);
         $propMap = Helpers::propListToPropMap($props);
         $expected = $propMap;
         unset($expected['username']);
@@ -181,9 +178,12 @@ class HelpersTest extends TestCase
 
         // test selection when dependant field is in a nullable group
         $valueGetter = fn(array $_row): string => '';
-        $rawPropMap['groupName']['dependsOn'] = ['client.name'];
-        $rawPropMap['groupName']['getValue'] = $valueGetter;
-        $props = Helpers::rawPropMapToProps($rawPropMap);
+        $props[6] = new Prop(
+            name: 'groupName',
+            col: 'DiffGroupName',
+            getValue: $valueGetter,
+            dependsOn: ['client.name'],
+        );
         $propMap = Helpers::propListToPropMap($props);
 
         $expected = ['groupName', 'client.name'];
@@ -208,14 +208,13 @@ class HelpersTest extends TestCase
 
         // test dependent fields marked as not default or excluded from output
         $dependencies = ['username', 'client.secret'];
-        $rawPropMap = [
-            'username' => ['col' => 'UserName', 'notDefault' => true],
-            'client.id' => ['col' => 'ClientID', 'nullGroup' => true, 'getValue' => $valueGetter, 'dependsOn' => $dependencies],
-            'client.name' => ['col' => 'Company', 'alias' => 'ClientName'],
-            'client.secret' => ['col' => 'Secret', 'output' => false],
+        $props = [
+            new Prop('username', 'UserName', isDefault: false),
+            new Prop('client.id', 'ClientID', nullGroup: true, getValue: $valueGetter, dependsOn: $dependencies),
+            new Prop('client.name', 'Company', alias: 'ClientName'),
+            new Prop('client.secret', 'Secret', output: false),
         ];
 
-        $props = Helpers::rawPropMapToProps($rawPropMap);
         $propMap = Helpers::propListToPropMap($props);
 
         // don't select dependent username field since client.id isn't output anyway
@@ -258,18 +257,15 @@ class HelpersTest extends TestCase
 
     public function testPropMapToAliasMap(): void
     {
-        $utc = new \DateTimeZone('UTC');
-
-        $rawPropMap = [
-            'id' => ['col' => 'UserID'],
-            'username' => ['col' => 'a.UserName'],
-            'client.isDisabled' => ['col' => 'c.isDisabled', 'alias' => 'isClientDisabled', 'type' => 'bool'],
-            'dateCreated' => ['col' => 'DateCreatedUTC', 'timeZone' => $utc],
-            'computed' => ['getValue' => fn(array $_): bool => true],
-            'computed2' => ['alias' => 'aliased', 'getValue' => fn(array $_): bool => false],
+        $props = [
+            new Prop('id', 'UserID'),
+            new Prop('username', 'a.UserName'),
+            new Prop('client.isDisabled', 'c.isDisabled', alias: 'isClientDisabled', type: 'bool'),
+            new Prop('dateCreated', 'DateCreatedUTC', timeZone: new \DateTimeZone('UTC')),
+            new Prop('computed', getValue: fn(array $_): bool => true),
+            new Prop('computed2', alias: 'aliased', getValue: fn(array $_): bool => false),
         ];
 
-        $props = Helpers::rawPropMapToProps($rawPropMap);
         $propMap = Helpers::propListToPropMap($props);
 
         $expected = [

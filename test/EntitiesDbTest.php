@@ -209,7 +209,7 @@ class EntitiesDbTest extends TestCase
     /**
      * @dataProvider entitiesProvider
      */
-    public function testGetDuplicateError(Entities $entities): void
+    public function testDuplicateError(Entities $entities): void
     {
         $users = [
             [
@@ -228,14 +228,14 @@ class EntitiesDbTest extends TestCase
             $entities->addEntities($users);
             throw new \Exception('Failed to throw duplicate name exception');
         } catch (\Exception $e) {
-            $this->assertSame('A user with this name already exists', $e->getMessage());
+            $this->assertStringContainsStringIgnoringCase(' duplicate ', $e->getMessage());
         }
     }
 
     /**
      * @dataProvider dbProvider
      */
-    public function testGetConstraintError(PeachySql $db): void
+    public function testConstraintError(PeachySql $db): void
     {
         $user = [
             'name' => 'Some Name',
@@ -251,7 +251,7 @@ class EntitiesDbTest extends TestCase
             $entities->deleteByIds([$id]);
             throw new \Exception('Failed to throw constraint violation exception');
         } catch (\Exception $e) {
-            $this->assertSame('Failed to delete user: it still has things referencing it', $e->getMessage());
+            $this->assertStringContainsStringIgnoringCase(' constraint ', $e->getMessage());
         }
     }
 

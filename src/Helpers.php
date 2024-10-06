@@ -8,12 +8,11 @@ use Teapot\{HttpException, StatusCode};
 
 /**
  * @internal
- * @psalm-import-type PropArray from Entities
  */
 class Helpers
 {
     /**
-     * @return array<string, PropArray>
+     * @return array<string, Prop>
      */
     public static function selectMapToPropMap(array $map, string $context = ''): array
     {
@@ -32,7 +31,7 @@ class Helpers
             if (is_array($val)) {
                 $propMap = array_merge($propMap, self::selectMapToPropMap($val, $newKey));
             } else {
-                $propMap[$newKey] = ['col' => $val];
+                $propMap[$newKey] = new Prop($newKey, $val);
             }
         }
 
@@ -234,32 +233,6 @@ class Helpers
         }
 
         return $fieldProps;
-    }
-
-    /**
-     * @param array<string, PropArray> $map
-     * @return array<string, Prop>
-     */
-    public static function rawPropMapToProps(array $map): array
-    {
-        $props = [];
-
-        foreach ($map as $name => $options) {
-            $props[$name] = new Prop(
-                $name,
-                $options['col'] ?? '',
-                $options['nullGroup'] ?? false,
-                !($options['notDefault'] ?? false),
-                $options['alias'] ?? '',
-                $options['type'] ?? null,
-                $options['timeZone'] ?? false,
-                $options['getValue'] ?? null,
-                $options['dependsOn'] ?? [],
-                $options['output'] ?? true
-            );
-        }
-
-        return $props;
     }
 
     /**

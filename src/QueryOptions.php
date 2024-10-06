@@ -33,39 +33,6 @@ class QueryOptions
         $this->fieldProps = $fieldProps;
     }
 
-    /**
-     * @deprecated Use readonly property instead
-     */
-    public function getFilter(): array
-    {
-        return $this->filter;
-    }
-
-    /**
-     * @deprecated Use readonly property instead
-     */
-    public function getOriginalFilter(): array
-    {
-        return $this->originalFilter;
-    }
-
-    /**
-     * @deprecated Use readonly property instead
-     */
-    public function getSort(): array
-    {
-        return $this->sort;
-    }
-
-    /**
-     * @deprecated Use readonly property instead
-     * @return Prop[]
-     */
-    public function getFieldProps(): array
-    {
-        return $this->fieldProps;
-    }
-
     public function getColumns(): string
     {
         $columns = '';

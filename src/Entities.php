@@ -6,15 +6,8 @@ namespace theodorejb\Phaster;
 
 use PeachySQL\PeachySql;
 use PeachySQL\QueryBuilder\SqlParams;
-use PeachySQL\SqlException;
 use Teapot\{HttpException, StatusCode};
 
-/**
- * @psalm-type PropArray = array{
- *     col?: string, nullGroup?: bool, notDefault?: bool, alias?: string, type?: string,
- *     timeZone?: \DateTimeZone|null, getValue?: callable|null, dependsOn?: list<string>, output?: bool
- * }
- */
 abstract class Entities
 {
     /**
@@ -33,11 +26,7 @@ abstract class Entities
     public function __construct(PeachySql $db)
     {
         $this->db = $db;
-        /** @psalm-suppress DeprecatedMethod */
-        $legacyPropMap = $this->getPropMap();
-        /** @var array<string, PropArray> $rawPropMap */
-        $rawPropMap = array_replace_recursive(Helpers::selectMapToPropMap($this->getSelectMap()), $legacyPropMap);
-        $bcProps = Helpers::rawPropMapToProps($rawPropMap);
+        $bcProps = Helpers::selectMapToPropMap($this->getSelectMap());
         $selectProps = $this->getSelectProps();
 
         foreach ($selectProps as $prop) {
@@ -108,40 +97,11 @@ abstract class Entities
     }
 
     /**
-     * Specify a friendly error message for constraint violations (when inserting/updating rows)
-     * @deprecated
-     */
-    protected function getDuplicateError(): string
-    {
-        return '';
-    }
-
-    /**
-     * Specify a friendly error message for constraint violations (when attempting to delete rows)
-     * @deprecated
-     */
-    protected function getConstraintError(): string
-    {
-        return '';
-    }
-
-    /**
      * Can be used to return a separate property map for filtering/sorting (but not inserting/updating)
      */
     protected function getSelectMap(): array
     {
         return $this->getMap();
-    }
-
-    /**
-     * Merge additional property information with getSelectMap().
-     * Look at the Prop class constructor to see supported options.
-     * @deprecated Use getSelectProps() instead.
-     * @return array<string, PropArray>
-     */
-    protected function getPropMap(): array
-    {
-        return [];
     }
 
     /**
@@ -201,18 +161,7 @@ abstract class Entities
             return 0;
         }
 
-        try {
-            return $this->db->deleteFrom($this->getTableName(), [$this->idColumn => $ids]);
-        } catch (SqlException $e) {
-            /** @psalm-suppress DeprecatedMethod */
-            $constraintError = $this->getConstraintError();
-
-            if ($constraintError !== '' && $e->getSqlState() === '23000') {
-                throw new HttpException($constraintError, StatusCode::CONFLICT, $e);
-            } else {
-                throw $e;
-            }
-        }
+        return $this->db->deleteFrom($this->getTableName(), [$this->idColumn => $ids]);
     }
 
     public function updateById(int|string $id, array $data): int
@@ -220,11 +169,7 @@ abstract class Entities
         $row = Helpers::allPropertiesToColumns($this->map, $this->processValues($data, [$id]));
         $row = $this->processRow($row, [$id]);
 
-        try {
-            return $this->db->updateRows($this->getTableName(), $row, [$this->idColumn => $id]);
-        } catch (SqlException $e) {
-            throw $this->properException($e);
-        }
+        return $this->db->updateRows($this->getTableName(), $row, [$this->idColumn => $id]);
     }
 
     /**
@@ -240,11 +185,7 @@ abstract class Entities
         $colVals = self::propertiesToColumns($this->map, $this->processValues($mergePatch, $ids));
         $colVals = $this->processRow($colVals, $ids);
 
-        try {
-            return $this->db->updateRows($this->getTableName(), $colVals, [$this->idColumn => $ids]);
-        } catch (SqlException $e) {
-            throw $this->properException($e);
-        }
+        return $this->db->updateRows($this->getTableName(), $colVals, [$this->idColumn => $ids]);
     }
 
     /**
@@ -280,27 +221,11 @@ abstract class Entities
             }
         }
 
-        try {
-            $ids = $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->ids;
-            foreach ($existingIds as $offset => $id) {
-                array_splice($ids, $offset, 0, [$id]);
-            }
-            return $ids;
-        } catch (SqlException $e) {
-            throw $this->properException($e);
+        $ids = $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->ids;
+        foreach ($existingIds as $offset => $id) {
+            array_splice($ids, $offset, 0, [$id]);
         }
-    }
-
-    private function properException(SqlException $e): \Exception
-    {
-        /** @psalm-suppress DeprecatedMethod */
-        $duplicateError = $this->getDuplicateError();
-
-        if ($duplicateError !== '' && $e->getSqlState() === '23000') {
-            return new HttpException($duplicateError, StatusCode::CONFLICT, $e);
-        } else {
-            return $e;
-        }
+        return $ids;
     }
 
     /**

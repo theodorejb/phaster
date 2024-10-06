@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace theodorejb\Phaster\Test\src;
 
 use theodorejb\Phaster\Entities;
+use theodorejb\Phaster\Prop;
 
-/**
- * @psalm-import-type PropArray from Entities
- * https://github.com/vimeo/psalm/issues/8645
- */
 class Users extends Entities
 {
     protected function getMap(): array
@@ -23,10 +20,10 @@ class Users extends Entities
         ];
     }
 
-    protected function getPropMap(): array
+    protected function getSelectProps(): array
     {
         return [
-            'isDisabled' => ['type' => 'bool'],
+            new Prop('isDisabled', 'isDisabled', type: 'bool'),
         ];
     }
 
@@ -35,15 +32,5 @@ class Users extends Entities
         return [
             'isDisabled' => false,
         ];
-    }
-
-    protected function getDuplicateError(): string
-    {
-        return 'A user with this name already exists';
-    }
-
-    protected function getConstraintError(): string
-    {
-        return 'Failed to delete user: it still has things referencing it';
     }
 }
