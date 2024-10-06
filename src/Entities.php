@@ -284,7 +284,7 @@ abstract class Entities
         }
 
         try {
-            $ids = $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->getIds();
+            $ids = $this->db->insertRows($this->getTableName(), $rows, $this->getIdentityIncrement())->ids;
             foreach ($existingIds as $offset => $id) {
                 array_splice($ids, $offset, 0, [$id]);
             }
