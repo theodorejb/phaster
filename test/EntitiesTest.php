@@ -82,7 +82,15 @@ class EntitiesTest extends TestCase
             'BinaryColumn' => ['abc123', 1],
         ];
 
-        $this->assertSame($binaryExpectation, Helpers::allPropertiesToColumns($binaryMap, $binaryObj));
+        $this->assertSame($binaryExpectation, Entities::propertiesToColumns($binaryMap, $binaryObj));
+
+        try {
+            Helpers::allPropertiesToColumns($binaryMap, $binaryObj);
+            $this->fail('Failed to throw exception for non-scalar property value');
+        } catch (\Exception $e) {
+            $this->assertSame('Expected binaryProp property to have a scalar value, got array', $e->getMessage());
+            $this->assertSame(400, $e->getCode());
+        }
     }
 
     public function testInvalidMap(): void
@@ -94,7 +102,8 @@ class EntitiesTest extends TestCase
                 Entities::propertiesToColumns(['prop' => $type], ['prop' => true]);
                 $this->fail('Failed to throw exception for invalid map value');
             } catch (\Exception $e) {
-                $this->assertSame("Map values must be arrays or strings, found " . gettype($type) . " for prop property", $e->getMessage());
+                $msg = "Map values must be arrays or strings, found " . get_debug_type($type) . " for prop property";
+                $this->assertSame($msg, $e->getMessage());
             }
         }
 
@@ -140,7 +149,7 @@ class EntitiesTest extends TestCase
             Entities::propertiesToColumns($this->propertyMap, $badData);
             $this->fail('Failed to throw exception for null property');
         } catch (HttpException $e) {
-            $this->assertSame("Expected client property to be an object, got NULL", $e->getMessage());
+            $this->assertSame("Expected client property to be an object, got null", $e->getMessage());
         }
 
         try {

@@ -290,16 +290,24 @@ class Helpers
      */
     public static function allPropertiesToColumns(array $map, array $properties): array
     {
-        self::propsToColumns($properties, $map, false, false);
-        return self::propsToColumns($map, $properties, true, true);
+        // ensure that $map doesn't contain any properties that aren't in $properties
+        self::propsToColumns($properties, $map, false, false, false);
+        return self::propsToColumns($map, $properties, true, false, true);
     }
 
     /**
      * @param array<string, mixed> $columns
      * @return array<string, mixed>
      */
-    public static function propsToColumns(array $map, array $properties, bool $allowExtraProperties, bool $buildColumns, string $context = '', array &$columns = []): array
-    {
+    public static function propsToColumns(
+        array $map,
+        array $properties,
+        bool $ignoreUnmapped,
+        bool $complexValues,
+        bool $buildColumns,
+        string $context = '',
+        array $columns = [],
+    ): array {
         if ($context !== '') {
             $context .= '.';
         }
@@ -308,7 +316,7 @@ class Helpers
             $contextProp = $context . $property;
 
             if (!array_key_exists($property, $map)) {
-                if ($allowExtraProperties) {
+                if ($ignoreUnmapped) {
                     continue;
                 }
 
@@ -322,20 +330,31 @@ class Helpers
             if (is_array($newMap)) {
                 if (!is_array($value)) {
                     if ($buildColumns) {
-                        throw new HttpException("Expected {$contextProp} property to be an object, got " . gettype($value), StatusCode::BAD_REQUEST);
+                        $msg = "Expected $contextProp property to be an object, got " . get_debug_type($value);
+                        throw new HttpException($msg, StatusCode::BAD_REQUEST);
                     } else {
                         continue;
                     }
                 }
 
-                self::propsToColumns($newMap, $value, $allowExtraProperties, $buildColumns, $contextProp, $columns);
+                $columns = self::propsToColumns(
+                    map: $newMap,
+                    properties: $value,
+                    ignoreUnmapped: $ignoreUnmapped,
+                    complexValues: $complexValues,
+                    buildColumns: $buildColumns,
+                    context: $contextProp,
+                    columns: $columns,
+                );
             } elseif ($buildColumns) {
                 if (!is_string($newMap)) {
-                    throw new \Exception('Map values must be arrays or strings, found ' . gettype($newMap) . " for {$contextProp} property");
-                }
-
-                if (array_key_exists($newMap, $columns)) {
-                    throw new \Exception("Column '{$newMap}' is mapped to more than one property ({$contextProp})");
+                    $msg = 'Map values must be arrays or strings, found ' . get_debug_type($newMap) . " for $contextProp property";
+                    throw new \Exception($msg);
+                } elseif (array_key_exists($newMap, $columns)) {
+                    throw new \Exception("Column '$newMap' is mapped to more than one property ($contextProp)");
+                } elseif (!$complexValues && !is_null($value) && !is_scalar($value)) {
+                    $msg = "Expected $contextProp property to have a scalar value, got " . get_debug_type($value);
+                    throw new HttpException($msg, StatusCode::BAD_REQUEST);
                 }
 
                 /** @psalm-suppress MixedAssignment */

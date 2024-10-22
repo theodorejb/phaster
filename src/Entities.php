@@ -182,7 +182,8 @@ abstract class Entities
             return 0;
         }
 
-        $colVals = self::propertiesToColumns($this->map, $this->processValues($mergePatch, $ids));
+        $data = $this->processValues($mergePatch, $ids);
+        $colVals = self::propertiesToColumns($this->map, $data, complexValues: false);
         $colVals = $this->processRow($colVals, $ids);
 
         return $this->db->updateRows($this->getTableName(), $colVals, [$this->idColumn => $ids]);
@@ -274,7 +275,7 @@ abstract class Entities
         /** @psalm-suppress MixedArgumentTypeCoercion */
         $select = $this->db->select($this->getBaseSelect($queryOptions))
             ->where(self::propertiesToColumns($selectMap, $processedFilter))
-            ->orderBy(self::propertiesToColumns($selectMap, $sort));
+            ->orderBy(self::propertiesToColumns($selectMap, $sort, complexValues: false));
 
         if ($limit !== 0) {
             $select->offset($offset, $limit);
@@ -305,8 +306,12 @@ abstract class Entities
      * Converts nested properties to an array of columns and values using a map.
      * @return array<string, mixed>
      */
-    public static function propertiesToColumns(array $map, array $properties, bool $allowExtraProperties = false): array
-    {
-        return Helpers::propsToColumns($map, $properties, $allowExtraProperties, true);
+    public static function propertiesToColumns(
+        array $map,
+        array $properties,
+        bool $ignoreUnmapped = false,
+        bool $complexValues = true,
+    ): array {
+        return Helpers::propsToColumns($map, $properties, $ignoreUnmapped, $complexValues, true);
     }
 }
