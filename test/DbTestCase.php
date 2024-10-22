@@ -113,14 +113,14 @@ abstract class DbTestCase extends TestCase
 
         $users = [
             [
-                'name' => 'Name 1',
-                'birthday' => '2010-11-12',
-                'weight' => 100.0,
+                'name' => 'Canada 🪿',
+                'birthday' => '2024-10-21',
+                'weight' => 10.55,
             ],
             [
-                'name' => 'Name 2',
-                'birthday' => '2011-12-13',
-                'weight' => 123.0,
+                'name' => 'Rutt 🫎',
+                'birthday' => '2015-02-03',
+                'weight' => 1500.0,
             ],
         ];
 
