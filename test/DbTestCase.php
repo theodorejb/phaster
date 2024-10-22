@@ -6,77 +6,35 @@ namespace theodorejb\Phaster\Test;
 
 use PeachySQL\PeachySql;
 use PHPUnit\Framework\TestCase;
-use theodorejb\Phaster\Entities;
-use theodorejb\Phaster\Test\src\{DbConnector, Users, LegacyUsers, ModernUsers};
+use theodorejb\Phaster\Test\src\{Users, LegacyUsers, ModernUsers};
 
-class EntitiesDbTest extends TestCase
+abstract class DbTestCase extends TestCase
 {
-    /**
-     * @return list<array{0: PeachySql}>
-     */
-    public static function dbProvider(): array
+    abstract public static function dbProvider(): PeachySql;
+
+    public static function tearDownAfterClass(): void
     {
-        $config = DbConnector::getConfig();
-        $databases = [];
+        $db = static::dbProvider();
 
-        if ($config->testMysql()) {
-            $databases[] = [DbConnector::getMysqlConn()];
+        foreach (['UserThings', 'Users'] as $table) {
+            $db->query("DROP TABLE IF EXISTS $table");
         }
-
-        if ($config->testSqlsrv()) {
-            $databases[] = [DbConnector::getSqlsrvConn()];
-        }
-
-        return $databases;
     }
 
-    /**
-     * @return list<array{0: Users}>
-     */
-    public static function entitiesProvider(): array
+    public static function entitiesProvider(): Users
     {
-        $list = [];
-
-        foreach (self::dbProvider() as $db) {
-            $list[] = [new Users($db[0])];
-        }
-
-        return $list;
+        return new Users(static::dbProvider());
     }
 
-    /**
-     * @return list<array{0: LegacyUsers}>
-     */
-    public static function legacyUsersProvider(): array
+    public static function legacyUsersProvider(): LegacyUsers
     {
-        $list = [];
-
-        foreach (self::dbProvider() as $db) {
-            $list[] = [new LegacyUsers($db[0])];
-        }
-
-        return $list;
+        return new LegacyUsers(static::dbProvider());
     }
 
-    /**
-     * @return list<array{0: ModernUsers, 1: PeachySql}>
-     */
-    public static function modernUsersProvider(): array
+    public function testAddEntities(): void
     {
-        $list = [];
+        $entities = static::entitiesProvider();
 
-        foreach (self::dbProvider() as $db) {
-            $list[] = [new ModernUsers($db[0]), $db[0]];
-        }
-
-        return $list;
-    }
-
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testAddEntities(Entities $entities): void
-    {
         try {
             $entities->addEntities([[
                 'name' => 'My name',
@@ -111,11 +69,10 @@ class EntitiesDbTest extends TestCase
         $this->assertSame($users, $entities->getEntitiesByIds($ids));
     }
 
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testUpdateById(Entities $entities): void
+    public function testUpdateById(): void
     {
+        $entities = static::entitiesProvider();
+
         try {
             // optional properties should still be required when replacing an entity
             $entities->updateById(0, [
@@ -150,11 +107,10 @@ class EntitiesDbTest extends TestCase
         $this->assertSame($newUser, $entities->getEntityById($id));
     }
 
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testPatchByIds(Entities $entities): void
+    public function testPatchByIds(): void
     {
+        $entities = static::entitiesProvider();
+
         $users = [
             [
                 'name' => 'Name 1',
@@ -190,22 +146,19 @@ class EntitiesDbTest extends TestCase
         $this->assertSame([], $entities->getEntitiesByIds($ids));
     }
 
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testEmptyQueries(Entities $entities): void
+    public function testEmptyQueries(): void
     {
+        $entities = static::entitiesProvider();
         $ids = $entities->addEntities([]);
         $this->assertSame([], $entities->getEntitiesByIds($ids));
         $this->assertSame(0, $entities->patchByIds($ids, ['weight' => 10]));
         $this->assertSame(0, $entities->deleteByIds($ids));
     }
 
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testDuplicateError(Entities $entities): void
+    public function testDuplicateError(): void
     {
+        $entities = static::entitiesProvider();
+
         $users = [
             [
                 'name' => 'Conflicting Name',
@@ -227,11 +180,10 @@ class EntitiesDbTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider dbProvider
-     */
-    public function testConstraintError(PeachySql $db): void
+    public function testConstraintError(): void
     {
+        $db = static::dbProvider();
+
         $user = [
             'name' => 'Some Name',
             'birthday' => '2001-06-17',
@@ -250,11 +202,9 @@ class EntitiesDbTest extends TestCase
         }
     }
 
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testGetEntities(Entities $entities): void
+    public function testGetEntities(): void
     {
+        $entities = static::entitiesProvider();
         $users = [];
 
         for ($i = 1; $i <= 50; $i++) {
@@ -286,11 +236,9 @@ class EntitiesDbTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-    /**
-     * @dataProvider entitiesProvider
-     */
-    public function testCountEntities(Entities $entities): void
+    public function testCountEntities(): void
     {
+        $entities = static::entitiesProvider();
         $users = [];
 
         for ($i = 1; $i <= 20; $i++) {
@@ -306,11 +254,9 @@ class EntitiesDbTest extends TestCase
         $this->assertSame(10, $actual);
     }
 
-    /**
-     * @dataProvider legacyUsersProvider
-     */
-    public function testLegacyUsers(Entities $entities): void
+    public function testLegacyUsers(): void
     {
+        $entities = static::legacyUsersProvider();
         $users = [];
 
         for ($i = 1; $i <= 20; $i++) {
@@ -340,11 +286,10 @@ class EntitiesDbTest extends TestCase
         $this->assertSame([['name' => 'Legacy user 5']], $actual);
     }
 
-    /**
-     * @dataProvider modernUsersProvider
-     */
-    public function testModernUsers(Entities $entities, PeachySql $db): void
+    public function testModernUsers(): void
     {
+        $db = static::dbProvider();
+        $entities = new ModernUsers($db);
         $users = [];
 
         for ($i = 1; $i <= 10; $i++) {

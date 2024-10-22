@@ -43,4 +43,4 @@ jobs:
         if: ${{ matrix.php == '8.3' }}
 
       - name: Run PHPUnit
-        run: vendor/bin/phpunit
+        run: composer test-mysql
