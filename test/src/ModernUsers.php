@@ -20,7 +20,7 @@ class ModernUsers extends Entities
             'name' => 'name',
             'birthday' => 'dob',
             'weight' => 'weight',
-            'isDisabled' => 'isDisabled',
+            'isDisabled' => 'is_disabled',
         ];
     }
 
@@ -34,7 +34,7 @@ class ModernUsers extends Entities
         return [
             new Prop('id', 'u.user_id'),
             new Prop('name', 'name', false, true, 'username'),
-            new Prop('isDisabled', 'isDisabled', false, true, '', 'bool'),
+            new Prop('isDisabled', 'is_disabled', false, true, '', 'bool'),
             new Prop('computed', '', false, true, '', null, false, $getValue, ['weight']),
             new Prop('thing.id', 'ut.thing_id', true),
             new Prop('thing.uid', 'ut.user_id', false, true, 'thing_user'),

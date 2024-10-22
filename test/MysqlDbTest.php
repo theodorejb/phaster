@@ -40,7 +40,7 @@ class MysqlDbTest extends DbTestCase
                 name VARCHAR(50) NOT NULL UNIQUE,
                 dob DATE NOT NULL,
                 weight DOUBLE NOT NULL,
-                isDisabled BOOLEAN NOT NULL
+                is_disabled BOOLEAN NOT NULL
             )";
 
         $db->query($sql);

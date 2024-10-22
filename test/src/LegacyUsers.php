@@ -20,7 +20,7 @@ class LegacyUsers extends Entities
             'name' => 'name',
             'birthday' => 'dob',
             'weight' => 'weight',
-            'isDisabled' => 'isDisabled',
+            'isDisabled' => 'is_disabled',
         ];
     }
 

@@ -16,14 +16,14 @@ class Users extends Entities
             'name' => 'name',
             'birthday' => 'dob',
             'weight' => 'weight',
-            'isDisabled' => 'isDisabled',
+            'isDisabled' => 'is_disabled',
         ];
     }
 
     protected function getSelectProps(): array
     {
         return [
-            new Prop('isDisabled', 'isDisabled', type: 'bool'),
+            new Prop('isDisabled', 'is_disabled', type: 'bool'),
         ];
     }
 

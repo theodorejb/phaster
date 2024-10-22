@@ -40,7 +40,7 @@ class MssqlDbTest extends DbTestCase
                 name NVARCHAR(50) NOT NULL UNIQUE,
                 dob DATE NOT NULL,
                 weight FLOAT NOT NULL,
-                isDisabled BIT NOT NULL
+                is_disabled BIT NOT NULL
             );
             CREATE TABLE UserThings (
                 thing_id INT PRIMARY KEY IDENTITY NOT NULL,
