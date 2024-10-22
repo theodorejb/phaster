@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace theodorejb\Phaster\Test;
 
-use PeachySQL\{Mysql, PeachySql, SqlServer};
+use PeachySQL\PeachySql;
 use PHPUnit\Framework\TestCase;
 use theodorejb\Phaster\Entities;
 use theodorejb\Phaster\Test\src\{DbConnector, Users, LegacyUsers, ModernUsers};
 
 class EntitiesDbTest extends TestCase
 {
-    public static function tearDownAfterClass(): void
-    {
-        DbConnector::deleteTestTables();
-    }
-
     /**
      * @return list<array{0: PeachySql}>
      */
@@ -25,11 +20,11 @@ class EntitiesDbTest extends TestCase
         $databases = [];
 
         if ($config->testMysql()) {
-            $databases[] = [new Mysql(DbConnector::getMysqlConn())];
+            $databases[] = [DbConnector::getMysqlConn()];
         }
 
         if ($config->testSqlsrv()) {
-            $databases[] = [new SqlServer(DbConnector::getSqlsrvConn())];
+            $databases[] = [DbConnector::getSqlsrvConn()];
         }
 
         return $databases;

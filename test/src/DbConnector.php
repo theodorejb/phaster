@@ -6,16 +6,16 @@ namespace theodorejb\Phaster\Test\src;
 
 use Exception;
 use mysqli;
+use PeachySQL\Mysql;
+use PeachySQL\PeachySql;
+use PeachySQL\SqlServer;
 
 class DbConnector
 {
     private static Config $config;
-    private static ?mysqli $mysqlConn = null;
 
-    /**
-     * @var resource|null
-     */
-    private static $sqlsrvConn;
+    private static ?PeachySql $mssqlDb = null;
+    private static ?PeachySql $mysqlDb = null;
 
     public static function setConfig(Config $config): void
     {
@@ -27,137 +27,98 @@ class DbConnector
         return self::$config;
     }
 
-    public static function getMysqlConn(): mysqli
+    public static function getMysqlConn(): PeachySql
     {
-        if (!self::$mysqlConn) {
+        if (!self::$mysqlDb) {
             $c = self::getConfig();
-            $dbPort = getenv('DB_PORT');
+            $conn = new mysqli($c->getMysqlHost(), $c->getMysqlUser(), $c->getMysqlPassword(), $c->getMysqlDatabase());
 
-            if ($dbPort === false) {
-                $dbPort = 3306;
-            } else {
-                $dbPort = (int) $dbPort;
+            if ($conn->connect_error !== null) {
+                throw new Exception('Failed to connect to MySQL: ' . $conn->connect_error);
             }
 
-            self::$mysqlConn = new mysqli($c->getMysqlHost(), $c->getMysqlUser(), $c->getMysqlPassword(), $c->getMysqlDatabase(), $dbPort);
-
-            if (self::$mysqlConn->connect_error !== null) {
-                throw new Exception('Failed to connect to MySQL: ' . self::$mysqlConn->connect_error);
-            }
-
-            self::createMysqlTestTable(self::$mysqlConn);
+            self::$mysqlDb = new Mysql($conn);
+            self::createMysqlTestTable(self::$mysqlDb);
         }
 
-        return self::$mysqlConn;
+        return self::$mysqlDb;
     }
 
-    /**
-     * @return resource
-     */
-    public static function getSqlsrvConn()
+    public static function getSqlsrvConn(): PeachySql
     {
-        if (!self::$sqlsrvConn) {
+        if (!self::$mssqlDb) {
             $c = self::getConfig();
-            self::$sqlsrvConn = sqlsrv_connect($c->getSqlsrvServer(), $c->getSqlsrvConnInfo());
+            $conn = sqlsrv_connect($c->getSqlsrvServer(), $c->getSqlsrvConnInfo());
 
-            if (!self::$sqlsrvConn) {
+            if (!$conn) {
                 throw new Exception('Failed to connect to SQL server: ' . print_r(sqlsrv_errors(), true));
             }
 
-            self::createSqlServerTestTable(self::$sqlsrvConn);
+            self::$mssqlDb = new SqlServer($conn);
+            self::createSqlServerTestTable(self::$mssqlDb);
         }
 
-        return self::$sqlsrvConn;
+        return self::$mssqlDb;
     }
 
-    /**
-     * @param resource $conn
-     */
-    private static function createSqlServerTestTable($conn): void
+    private static function createSqlServerTestTable(PeachySql $db): void
     {
-        $sql = 'CREATE TABLE Users (
-                    user_id INT PRIMARY KEY IDENTITY NOT NULL,
-                    name VARCHAR(50) NOT NULL UNIQUE,
-                    dob DATE NOT NULL,
-                    weight FLOAT NOT NULL,
-                    isDisabled BIT NOT NULL
-                );';
+        self::deleteTestTables($db);
 
-        if (!sqlsrv_query($conn, $sql)) {
-            throw new Exception('Failed to create SQL Server test table: ' . print_r(sqlsrv_errors(), true));
-        }
+        $sql = "
+            CREATE TABLE Users (
+                user_id INT PRIMARY KEY IDENTITY NOT NULL,
+                name NVARCHAR(50) NOT NULL UNIQUE,
+                dob DATE NOT NULL,
+                weight FLOAT NOT NULL,
+                isDisabled BIT NOT NULL
+            )";
 
-        $sql = 'CREATE VIEW vUsers AS
-                SELECT user_id AS u_id, name, dob, weight, isDisabled
-                FROM Users;';
+        $db->query($sql);
 
-        if (!sqlsrv_query($conn, $sql)) {
-            throw new Exception('Failed to create SQL Server test view: ' . print_r(sqlsrv_errors(), true));
-        }
+        $sql = "
+            CREATE TABLE UserThings (
+                thing_id INT PRIMARY KEY IDENTITY NOT NULL,
+                user_id INT NOT NULL FOREIGN KEY REFERENCES Users(user_id)
+            )";
 
-        $sql = 'CREATE TABLE UserThings (
-                    thing_id INT PRIMARY KEY IDENTITY NOT NULL,
-                    user_id INT NOT NULL FOREIGN KEY REFERENCES Users(user_id)
-                );';
-
-        if (!sqlsrv_query($conn, $sql)) {
-            throw new Exception('Failed to create SQL Server UserThings table: ' . print_r(sqlsrv_errors(), true));
-        }
+        $db->query($sql);
     }
 
-    private static function createMysqlTestTable(mysqli $conn): void
+    private static function createMysqlTestTable(PeachySql $db): void
     {
-        $sql = 'CREATE TABLE Users (
-                    user_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-                    name VARCHAR(50) NOT NULL UNIQUE,
-                    dob DATE NOT NULL,
-                    weight FLOAT NOT NULL,
-                    isDisabled BOOLEAN NOT NULL
-                );';
+        self::deleteTestTables($db);
 
-        if (!$conn->query($sql)) {
-            throw new Exception('Failed to create MySQL test table: ' . print_r($conn->error_list, true));
-        }
+        $sql = "
+            CREATE TABLE Users (
+                user_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                name VARCHAR(50) NOT NULL UNIQUE,
+                dob DATE NOT NULL,
+                weight DOUBLE NOT NULL,
+                isDisabled BOOLEAN NOT NULL
+            )";
 
-        $sql = 'CREATE VIEW vUsers AS
-                SELECT user_id AS u_id, name, dob, weight, isDisabled
-                FROM Users;';
+        $db->query($sql);
 
-        if (!$conn->query($sql)) {
-            throw new Exception('Failed to create MySQL test view: ' . print_r($conn->error_list, true));
-        }
+        $sql = "
+            CREATE TABLE UserThings (
+                thing_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+                user_id INT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES Users(user_id)
+            )";
 
-        $sql = 'CREATE TABLE UserThings (
-                    thing_id INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-                    user_id INT NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES Users(user_id)
-                );';
-
-        if (!$conn->query($sql)) {
-            throw new Exception('Failed to create MySQL UserThings table: ' . print_r($conn->error_list, true));
-        }
+        $db->query($sql);
     }
 
-    public static function deleteTestTables(): void
+    public static function deleteTestTables(PeachySql $db): void
     {
         $sql = [
-            'DROP TABLE UserThings',
-            'DROP VIEW vUsers',
-            'DROP TABLE Users',
+            'DROP TABLE IF EXISTS UserThings',
+            'DROP TABLE IF EXISTS Users',
         ];
 
         foreach ($sql as $query) {
-            if (self::$mysqlConn) {
-                if (!self::$mysqlConn->query($query)) {
-                    throw new Exception('Failed to drop MySQL test table: ' . print_r(self::$mysqlConn->error_list, true));
-                }
-            }
-
-            if (self::$sqlsrvConn) {
-                if (!sqlsrv_query(self::$sqlsrvConn, $query)) {
-                    throw new Exception('Failed to drop SQL Server test table: ' . print_r(sqlsrv_errors(), true));
-                }
-            }
+            $db->query($query);
         }
     }
 }

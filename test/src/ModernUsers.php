@@ -32,7 +32,7 @@ class ModernUsers extends Entities
         };
 
         return [
-            new Prop('id', 'u.u_id'),
+            new Prop('id', 'u.user_id'),
             new Prop('name', 'name', false, true, 'username'),
             new Prop('isDisabled', 'isDisabled', false, true, '', 'bool'),
             new Prop('computed', '', false, true, '', null, false, $getValue, ['weight']),
@@ -49,8 +49,8 @@ class ModernUsers extends Entities
     protected function getBaseQuery(QueryOptions $options): string
     {
         return "SELECT {$options->getColumns()}
-                FROM vUsers u
-                LEFT JOIN UserThings ut ON ut.user_id = u.u_id";
+                FROM Users u
+                LEFT JOIN UserThings ut ON ut.user_id = u.user_id";
     }
 
     protected function processValues(array $data, array $ids): array
