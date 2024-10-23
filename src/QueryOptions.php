@@ -16,7 +16,7 @@ class QueryOptions
         public readonly array $filter,
         public readonly array $originalFilter,
         public readonly array $sort,
-        public readonly array $fieldProps
+        public readonly array $fieldProps,
     ) {}
 
     public function getColumns(): string

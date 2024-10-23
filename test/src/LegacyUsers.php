@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace theodorejb\Phaster\Test\src;
 
-use theodorejb\Phaster\{Entities, QueryOptions};
 use PeachySQL\QueryBuilder\SqlParams;
+use theodorejb\Phaster\{Entities, QueryOptions};
 
 class LegacyUsers extends Entities
 {

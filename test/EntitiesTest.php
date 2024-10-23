@@ -110,15 +110,15 @@ class EntitiesTest extends TestCase
         $duplicateColumns = [
             'prop1' => 'TestCol',
             'prop2' => [
-                'subProp' => 'TestCol'
-            ]
+                'subProp' => 'TestCol',
+            ],
         ];
 
         $properties = [
             'prop1' => 'Hello',
             'prop2' => [
-                'subProp' => 'World'
-            ]
+                'subProp' => 'World',
+            ],
         ];
 
         try {
@@ -145,7 +145,7 @@ class EntitiesTest extends TestCase
         }
 
         try {
-            $badData = [ 'client' => null ];
+            $badData = ['client' => null];
             Entities::propertiesToColumns($this->propertyMap, $badData);
             $this->fail('Failed to throw exception for null property');
         } catch (HttpException $e) {
@@ -153,7 +153,7 @@ class EntitiesTest extends TestCase
         }
 
         try {
-            $badData = [ 'client' => 'some string' ];
+            $badData = ['client' => 'some string'];
             Entities::propertiesToColumns($this->propertyMap, $badData);
             $this->fail('Failed to throw exception for invalid string property');
         } catch (\Exception $e) {
@@ -163,7 +163,7 @@ class EntitiesTest extends TestCase
 
     public function testPartialPropertiesToColumns(): void
     {
-        $map =  [
+        $map = [
             'name' => 'UserName',
             'client' => [
                 'id' => 'ClientID',

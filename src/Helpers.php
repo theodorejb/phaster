@@ -84,10 +84,10 @@ class Helpers
 
             foreach ($aliasMap as $colName => $prop) {
                 if ($prop->getValue !== null) {
-                    /** @var mixed $value */
+                    /** @psalm-suppress MixedAssignment */
                     $value = ($prop->getValue)($row);
                 } else {
-                    /** @var mixed $value */
+                    /** @psalm-suppress MixedAssignment */
                     $value = $row[$colName];
 
                     if ($prop->type !== null) {

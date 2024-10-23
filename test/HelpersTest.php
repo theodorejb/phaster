@@ -6,7 +6,7 @@ namespace theodorejb\Phaster\Test;
 
 use PHPUnit\Framework\TestCase;
 use Teapot\HttpException;
-use theodorejb\Phaster\{Prop, Helpers};
+use theodorejb\Phaster\{Helpers, Prop};
 
 class HelpersTest extends TestCase
 {
@@ -71,8 +71,8 @@ class HelpersTest extends TestCase
         // test mapping all fields with nullable client.type group
         $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'Disabled' => 0, 'TypeID' => 2, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
-            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'Disabled' => 1, 'TypeID' => null, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
-            yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'Disabled' => null, 'TypeID' => null, 'DateCreatedUTC' => null];
+            yield ['UserID' => 42, 'UserName' => 'jsmith', 'ClientID' => 2, 'Disabled' => 1, 'TypeID' => null, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
+            yield ['UserID' => 1, 'UserName' => 'test', 'ClientID' => null, 'Disabled' => null, 'TypeID' => null, 'DateCreatedUTC' => null];
         };
 
         $expected = [
@@ -88,7 +88,7 @@ class HelpersTest extends TestCase
         $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'DateCreatedUTC' => '2019-02-18 09:01:35'];
             yield ['UserID' => 42, 'UserName' => 'jsmith', 'DateCreatedUTC' => '2018-05-20 23:22:40'];
-            yield ['UserID' => 1, 'UserName' => 'test',  'DateCreatedUTC' => null];
+            yield ['UserID' => 1, 'UserName' => 'test', 'DateCreatedUTC' => null];
         };
 
         $expected = [
@@ -103,8 +103,8 @@ class HelpersTest extends TestCase
         // test nullable client group when selecting client.isDisabled child property
         $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'Disabled' => 0, 'DateCreatedUTC' => '2019-02-18 09:01:35'];
-            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'Disabled' => 1, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
-            yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'Disabled' => null, 'DateCreatedUTC' => null];
+            yield ['UserID' => 42, 'UserName' => 'jsmith', 'ClientID' => 2, 'Disabled' => 1, 'DateCreatedUTC' => '2018-05-20 23:22:40'];
+            yield ['UserID' => 1, 'UserName' => 'test', 'ClientID' => null, 'Disabled' => null, 'DateCreatedUTC' => null];
         };
 
         $expected = [
@@ -121,8 +121,8 @@ class HelpersTest extends TestCase
         // test nullable client group when selecting client.type.id grandchild property
         $generator = function (): \Generator {
             yield ['UserID' => 5, 'UserName' => 'theodoreb', 'ClientID' => 1, 'TypeID' => 2];
-            yield ['UserID' => 42, 'UserName' => 'jsmith',  'ClientID' => 2, 'TypeID' => null];
-            yield ['UserID' => 1, 'UserName' => 'test',  'ClientID' => null, 'TypeID' => null];
+            yield ['UserID' => 42, 'UserName' => 'jsmith', 'ClientID' => 2, 'TypeID' => null];
+            yield ['UserID' => 1, 'UserName' => 'test', 'ClientID' => null, 'TypeID' => null];
         };
 
         $expected = [
@@ -282,7 +282,7 @@ class HelpersTest extends TestCase
 
     public function testAllPropertiesToColumns(): void
     {
-        $map =  [
+        $map = [
             'name' => 'UserName',
             'client' => [
                 'id' => 'ClientID',
@@ -302,7 +302,7 @@ class HelpersTest extends TestCase
         }
 
         try {
-            $missingClientId =  [
+            $missingClientId = [
                 'name' => 'Test Name',
                 'client' => [],
             ];
@@ -314,7 +314,7 @@ class HelpersTest extends TestCase
         }
 
         try {
-            $missingGroupTypeId =  [
+            $missingGroupTypeId = [
                 'name' => 'Test Name',
                 'client' => ['id' => null],
                 'group' => ['type' => []],
@@ -338,7 +338,7 @@ class HelpersTest extends TestCase
         $expected = [
             'UserName' => 'Test Name',
             'ClientID' => null,
-            'GroupTypeID' => 234
+            'GroupTypeID' => 234,
         ];
 
         $this->assertSame($expected, Helpers::allPropertiesToColumns($map, $valid));

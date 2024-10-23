@@ -39,7 +39,7 @@ class Prop
         public readonly DateTimeZone|null|false $timeZone = false,
         public readonly ?Closure $getValue = null,
         public readonly array $dependsOn = [],
-        bool $output = true
+        bool $output = true,
     ) {
         $this->output = $output;
         $this->map = explode('.', $name);

@@ -44,3 +44,7 @@ jobs:
 
       - name: Run PHPUnit
         run: composer test-mysql
+
+      - name: Check Formatting
+        run: vendor/bin/php-cs-fixer fix -v --dry-run --stop-on-violation --using-cache=no
+        if: ${{ matrix.php == '8.3' }}

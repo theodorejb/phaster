@@ -263,7 +263,7 @@ abstract class Entities
     public function getEntities(array $filter = [], array $fields = [], array $sort = [], int $offset = 0, int $limit = 0): array
     {
         $processedFilter = $this->processFilter($filter);
-        $selectMap = Helpers::propMapToSelectMap($this->fullPropMap);;
+        $selectMap = Helpers::propMapToSelectMap($this->fullPropMap);
 
         if ($sort === []) {
             $sort = $this->getDefaultSort();
@@ -287,7 +287,7 @@ abstract class Entities
     public function countEntities(array $filter = []): int
     {
         $processedFilter = $this->processFilter($filter);
-        $selectMap = Helpers::propMapToSelectMap($this->fullPropMap);;
+        $selectMap = Helpers::propMapToSelectMap($this->fullPropMap);
 
         $prop = new Prop('count', 'COUNT(*)', false, true, 'count');
         $queryOptions = new QueryOptions($processedFilter, $filter, [], [$prop]);

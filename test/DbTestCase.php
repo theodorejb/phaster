@@ -6,7 +6,7 @@ namespace theodorejb\Phaster\Test;
 
 use PeachySQL\PeachySql;
 use PHPUnit\Framework\TestCase;
-use theodorejb\Phaster\Test\src\{Users, LegacyUsers, ModernUsers};
+use theodorejb\Phaster\Test\src\{LegacyUsers, ModernUsers, Users};
 
 abstract class DbTestCase extends TestCase
 {

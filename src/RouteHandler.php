@@ -55,7 +55,7 @@ class RouteHandler
                 } elseif (filter_var($value, FILTER_VALIDATE_INT) === false) {
                     throw new HttpException("Parameter '{$param}' must be an integer", StatusCode::BAD_REQUEST);
                 } else {
-                    $params[$param] = (int)$value;
+                    $params[$param] = (int) $value;
                 }
             }
 
