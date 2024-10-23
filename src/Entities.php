@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster;
+namespace DevTheorem\Phaster;
 
 use PeachySQL\PeachySql;
 use PeachySQL\QueryBuilder\SqlParams;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test\src;
+namespace DevTheorem\Phaster\Test\src;
 
-use theodorejb\Phaster\{Entities, Prop, QueryOptions};
+use DevTheorem\Phaster\{Entities, Prop, QueryOptions};
 
 class ModernUsers extends Entities
 {

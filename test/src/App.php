@@ -1,6 +1,6 @@
 <?php
 
-namespace theodorejb\Phaster\Test\src;
+namespace DevTheorem\Phaster\Test\src;
 
 class App
 {

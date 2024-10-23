@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test;
+namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\Phaster\Test\src\{LegacyUsers, ModernUsers, Users};
 use PeachySQL\PeachySql;
 use PHPUnit\Framework\TestCase;
-use theodorejb\Phaster\Test\src\{LegacyUsers, ModernUsers, Users};
 
 abstract class DbTestCase extends TestCase
 {

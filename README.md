@@ -1,26 +1,26 @@
 # Phaster
 
-Phaster is a library for easily creating RESTful API endpoints.
-It works well with the Slim Framework, and supports PHP 7.4+.
+Phaster is a PSR-7 compatible library for easily making CRUD API endpoints.
+It enables mapping API fields to columns in the database or from a select query,
+and implementing custom validation or row modification logic.
+Built on top of [PeachySQL](https://github.com/devtheorem/peachy-sql).
 
 ## Installation
 
-`composer require theodorejb/phaster`
+`composer require devtheorem/phaster`
 
 ## Usage
 
-Create a class extending `theodorejb\Phaster\Entities` and implement the
-`getMap()` method. By default, the table name will be inferred from the
-class name, and all mapped columns in this table will be selected.
+Create a class extending `Entities` and implement the `getMap()` method. By default, the table
+name will be inferred from the class name, and all mapped columns in this table will be selected.
 
-To join other tables and alter output values, implement the `getBaseQuery()`
-and `getPropMap()` methods. Pass the callable returned by the route handling
-functions to your Slim or other PSR-7 compatible framework.
+To join other tables and alter output values, implement the `getBaseQuery()` and `getSelectProps()` methods.
+Pass the callable returned by the route handling functions to your Slim or other PSR-7 compatible framework.
 
 ```php
 <?php
 
-use theodorejb\Phaster\{Entities, Prop, QueryOptions};
+use DevTheorem\Phaster\{Entities, Prop, QueryOptions};
 
 class Users extends Entities
 {
@@ -70,8 +70,7 @@ use PeachySQL\QueryBuilder\SqlParams;
 // ...
 protected function getBaseSelect(QueryOptions $options): SqlParams
 {
-    $sql = "WITH num_orders AS
-            (
+    $sql = "WITH num_orders AS (
                 SELECT user_id, COUNT(*) as orders
                 FROM Orders
                 WHERE category_id = ?
@@ -90,7 +89,7 @@ protected function getBaseSelect(QueryOptions $options): SqlParams
 <?php
 
 use My\DatabaseFactory;
-use theodorejb\Phaster\{Entities, EntitiesFactory};
+use DevTheorem\Phaster\{Entities, EntitiesFactory};
 
 class MyEntitiesFactory implements EntitiesFactory
 {
@@ -104,7 +103,7 @@ class MyEntitiesFactory implements EntitiesFactory
 ```php
 <?php
 
-use theodorejb\Phaster\RouteHandler;
+use DevTheorem\Phaster\RouteHandler;
 
 $phaster = new RouteHandler(new MyEntitiesFactory());
 
@@ -118,7 +117,7 @@ $app->delete('/users/{id}', $phaster->delete(Users::class));
 
 ### Example API request/response
 
-GET https://example.com/api/users?q[firstName]=Ted&q[isDisabled]=0&fields=id,username,role
+GET `https://example.com/api/users?q[firstName]=Ted&q[isDisabled]=0&fields=id,username,role`
 
 ```json
 {

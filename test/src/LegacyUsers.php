@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test\src;
+namespace DevTheorem\Phaster\Test\src;
 
+use DevTheorem\Phaster\{Entities, QueryOptions};
 use PeachySQL\QueryBuilder\SqlParams;
-use theodorejb\Phaster\{Entities, QueryOptions};
 
 class LegacyUsers extends Entities
 {

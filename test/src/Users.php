@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test\src;
+namespace DevTheorem\Phaster\Test\src;
 
-use theodorejb\Phaster\Entities;
-use theodorejb\Phaster\Prop;
+use DevTheorem\Phaster\Entities;
+use DevTheorem\Phaster\Prop;
 
 class Users extends Entities
 {

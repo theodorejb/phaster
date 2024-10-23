@@ -1,6 +1,6 @@
 <?php
 
-namespace theodorejb\Phaster\Test\src;
+namespace DevTheorem\Phaster\Test\src;
 
 /**
  * Default test config. Values can be overridden with a LocalConfig child class.

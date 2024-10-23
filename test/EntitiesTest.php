@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace theodorejb\Phaster\Test;
+namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\Phaster\{Entities, Helpers};
 use PHPUnit\Framework\TestCase;
 use Teapot\HttpException;
-use theodorejb\Phaster\{Entities, Helpers};
 
 class EntitiesTest extends TestCase
 {

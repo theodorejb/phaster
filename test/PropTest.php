@@ -1,9 +1,9 @@
 <?php
 
-namespace theodorejb\Phaster\Test;
+namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\Phaster\Prop;
 use PHPUnit\Framework\TestCase;
-use theodorejb\Phaster\Prop;
 
 class PropTest extends TestCase
 {

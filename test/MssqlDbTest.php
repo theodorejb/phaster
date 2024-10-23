@@ -1,10 +1,10 @@
 <?php
 
-namespace theodorejb\Phaster\Test;
+namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\Phaster\Test\src\App;
 use PeachySQL\PeachySql;
 use PeachySQL\SqlServer;
-use theodorejb\Phaster\Test\src\App;
 
 /**
  * @group mssql

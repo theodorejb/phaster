@@ -1,8 +1,15 @@
 {
-    "name": "theodorejb/phaster",
-    "description": "A library for quick RESTful APIs",
+    "name": "devtheorem/phaster",
+    "description": "A PSR-7 compatible library for making CRUD API endpoints",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "API",
+        "CRUD",
+        "database",
+        "PSR-7",
+        "REST"
+    ],
     "authors": [
         {
             "name": "Theodore Brown",
@@ -12,9 +19,9 @@
     "require": {
         "php": ">=8.1",
         "ext-json": "*",
+        "devtheorem/peachy-sql": "^6.3.1",
         "psr/http-message": "^1.1 || ^2.0",
-        "shrikeh/teapot": "^2.3.1",
-        "theodorejb/peachy-sql": "^6.3"
+        "shrikeh/teapot": "^2.3.1"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
@@ -23,10 +30,14 @@
         "vimeo/psalm": "^5.26"
     },
     "autoload": {
-        "psr-4": {"theodorejb\\Phaster\\": "src/"}
+        "psr-4": {
+            "DevTheorem\\Phaster\\": "src/"
+        }
     },
     "autoload-dev": {
-        "psr-4": {"theodorejb\\Phaster\\Test\\": "test/"}
+        "psr-4": {
+            "DevTheorem\\Phaster\\Test\\": "test/"
+        }
     },
     "config": {
         "sort-packages": true

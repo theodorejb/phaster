@@ -1,6 +1,6 @@
 <?php
 
-use theodorejb\Phaster\Test\src\{App, Config, LocalConfig};
+use DevTheorem\Phaster\Test\src\{App, Config, LocalConfig};
 
 require 'vendor/autoload.php';
 
