@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DevTheorem\Phaster;
 
-use PeachySQL\PeachySql;
-use PeachySQL\QueryBuilder\SqlParams;
+use DevTheorem\PeachySQL\PeachySql;
+use DevTheorem\PeachySQL\QueryBuilder\SqlParams;
 use Teapot\{HttpException, StatusCode};
 
 abstract class Entities

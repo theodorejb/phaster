@@ -2,9 +2,9 @@
 
 namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\PeachySQL\PeachySql;
 use DevTheorem\Phaster\Test\src\App;
-use PeachySQL\Mysql;
-use PeachySQL\PeachySql;
+use PDO;
 
 /**
  * @group mysql
@@ -17,13 +17,12 @@ class MysqlDbTest extends DbTestCase
     {
         if (!self::$db) {
             $c = App::$config;
-            $conn = new \mysqli($c->getMysqlHost(), $c->getMysqlUser(), $c->getMysqlPassword(), $c->getMysqlDatabase());
 
-            if ($conn->connect_error !== null) {
-                throw new \Exception('Failed to connect to MySQL: ' . $conn->connect_error);
-            }
+            $pdo = new PDO($c->getMysqlDsn(), $c->getMysqlUser(), $c->getMysqlPassword(), [
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
 
-            self::$db = new Mysql($conn);
+            self::$db = new PeachySql($pdo);
             self::createTestTable(self::$db);
         }
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\PeachySQL\PeachySql;
 use DevTheorem\Phaster\Test\src\{LegacyUsers, ModernUsers, Users};
-use PeachySQL\PeachySql;
 use PHPUnit\Framework\TestCase;
 
 abstract class DbTestCase extends TestCase

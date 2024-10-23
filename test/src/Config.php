@@ -7,9 +7,9 @@ namespace DevTheorem\Phaster\Test\src;
  */
 class Config
 {
-    public function getMysqlHost(): string
+    public function getMysqlDsn(): string
     {
-        return '127.0.0.1';
+        return "mysql:host=127.0.0.1;port=3306;dbname=Phaster";
     }
 
     public function getMysqlUser(): string
@@ -22,22 +22,8 @@ class Config
         return '';
     }
 
-    public function getMysqlDatabase(): string
-    {
-        return 'Phaster';
-    }
-
     public function getSqlsrvServer(): string
     {
         return '(local)\SQLEXPRESS';
-    }
-
-    public function getSqlsrvConnInfo(): array
-    {
-        return [
-            'Database' => 'Phaster',
-            'ReturnDatesAsStrings' => true,
-            'CharacterSet' => 'UTF-8',
-        ];
     }
 }

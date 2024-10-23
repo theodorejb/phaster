@@ -2,9 +2,9 @@
 
 namespace DevTheorem\Phaster\Test;
 
+use DevTheorem\PeachySQL\PeachySql;
 use DevTheorem\Phaster\Test\src\App;
-use PeachySQL\PeachySql;
-use PeachySQL\SqlServer;
+use PDO;
 
 /**
  * @group mssql
@@ -17,13 +17,17 @@ class MssqlDbTest extends DbTestCase
     {
         if (!self::$db) {
             $c = App::$config;
-            $conn = sqlsrv_connect($c->getSqlsrvServer(), $c->getSqlsrvConnInfo());
+            $server = $c->getSqlsrvServer();
+            $username = '';
+            $password = '';
 
-            if (!$conn) {
-                throw new \Exception('Failed to connect to SQL server: ' . print_r(sqlsrv_errors(), true));
-            }
+            $pdo = new PDO("sqlsrv:server=$server", $username, $password, [
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::SQLSRV_ATTR_FETCHES_NUMERIC_TYPE => true,
+                'Database' => 'PeachySQL',
+            ]);
 
-            self::$db = new SqlServer($conn);
+            self::$db = new PeachySql($pdo);
             self::createTestTable(self::$db);
         }
 

@@ -66,7 +66,7 @@ class Users extends Entities
 If it is necessary to bind parameters in the base query, use `getBaseSelect` instead:
 
 ```php
-use PeachySQL\QueryBuilder\SqlParams;
+use DevTheorem\PeachySQL\QueryBuilder\SqlParams;
 // ...
 protected function getBaseSelect(QueryOptions $options): SqlParams
 {

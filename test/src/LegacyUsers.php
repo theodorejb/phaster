@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DevTheorem\Phaster\Test\src;
 
+use DevTheorem\PeachySQL\QueryBuilder\SqlParams;
 use DevTheorem\Phaster\{Entities, QueryOptions};
-use PeachySQL\QueryBuilder\SqlParams;
 
 class LegacyUsers extends Entities
 {
