@@ -33,7 +33,8 @@ abstract class DbTestCase extends TestCase
 
     public function testAddEntities(): void
     {
-        $entities = static::entitiesProvider();
+        $db = static::dbProvider();
+        $entities = new Users($db);
 
         try {
             $entities->addEntities([[
@@ -63,15 +64,20 @@ abstract class DbTestCase extends TestCase
 
         $ids = $entities->addEntities($users);
 
-        $users[0] = array_merge(['id' => $ids[0]], $users[0], ['isDisabled' => false]);
-        $users[1] = array_merge(['id' => $ids[1]], $users[1]);
+        $expected = array_map(function ($u, $i) use ($db) {
+            return array_merge(['id' => $i], $u, [
+                'weight' => $db->options->floatSelectedAsString ? (string) $u['weight'] : $u['weight'],
+                'isDisabled' => $u['isDisabled'] ?? false,
+            ]);
+        }, $users, $ids);
 
-        $this->assertSame($users, $entities->getEntitiesByIds($ids));
+        $this->assertSame($expected, $entities->getEntitiesByIds($ids));
     }
 
     public function testUpdateById(): void
     {
-        $entities = static::entitiesProvider();
+        $db = static::dbProvider();
+        $entities = new Users($db);
 
         try {
             // optional properties should still be required when replacing an entity
@@ -103,13 +109,18 @@ abstract class DbTestCase extends TestCase
             'isDisabled' => false,
         ];
 
+        if ($db->options->floatSelectedAsString) {
+            $newUser['weight'] = (string) $newUser['weight'];
+        }
+
         $entities->updateById($id, $newUser);
         $this->assertSame($newUser, $entities->getEntityById($id));
     }
 
     public function testPatchByIds(): void
     {
-        $entities = static::entitiesProvider();
+        $db = static::dbProvider();
+        $entities = new Users($db);
 
         $users = [
             [
@@ -126,8 +137,11 @@ abstract class DbTestCase extends TestCase
 
         $ids = $entities->addEntities($users);
 
-        $expected = array_map(function ($u, $i) {
-            return array_merge(['id' => $i], $u, ['isDisabled' => false]);
+        $expected = array_map(function ($u, $i) use ($db) {
+            return array_merge(['id' => $i], $u, [
+                'weight' => $db->options->floatSelectedAsString ? (string) $u['weight'] : $u['weight'],
+                'isDisabled' => false,
+            ]);
         }, $users, $ids);
 
         $this->assertSame($expected, $entities->getEntitiesByIds($ids));
@@ -136,8 +150,10 @@ abstract class DbTestCase extends TestCase
             'weight' => 125.0,
         ]);
 
-        $newExpected = array_map(function ($u) {
-            return array_merge($u, ['weight' => 125.0]);
+        $newExpected = array_map(function ($u) use ($db) {
+            return array_merge($u, [
+                'weight' => $db->options->floatSelectedAsString ? '125' : 125.0,
+            ]);
         }, $expected);
 
         $this->assertSame($newExpected, $entities->getEntitiesByIds($ids));
@@ -204,7 +220,8 @@ abstract class DbTestCase extends TestCase
 
     public function testGetEntities(): void
     {
-        $entities = static::entitiesProvider();
+        $db = static::dbProvider();
+        $entities = new Users($db);
         $users = [];
 
         for ($i = 1; $i <= 50; $i++) {
@@ -225,10 +242,11 @@ abstract class DbTestCase extends TestCase
         $expected = [];
 
         for ($j = 40; $j > 35; $j--) {
+            $weight = $j * 10.0;
             $expected[] = [
                 'name' => "User {$j}",
                 'birthday' => '2000-02-04',
-                'weight' => $j * 10.0,
+                'weight' => $db->options->floatSelectedAsString ? (string) $weight : $weight,
                 'isDisabled' => false,
             ];
         }
@@ -314,7 +332,7 @@ abstract class DbTestCase extends TestCase
                 'name' => 'Modern user 4',
                 'isDisabled' => false,
                 'computed' => 41.0,
-                'weight' => 40.0,
+                'weight' => $db->options->floatSelectedAsString ? '40' : 40.0,
                 'thing' => [
                     'uid' => $ids[3],
                 ],
@@ -324,7 +342,7 @@ abstract class DbTestCase extends TestCase
                 'name' => 'Modern user 3 modified',
                 'isDisabled' => false,
                 'computed' => 31.0,
-                'weight' => 30.0,
+                'weight' => $db->options->floatSelectedAsString ? '30' : 30.0,
                 'thing' => null,
             ],
         ];
