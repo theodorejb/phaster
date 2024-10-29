@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace DevTheorem\Phaster\Test\src;
 
 use DevTheorem\Phaster\Entities;

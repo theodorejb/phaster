@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace DevTheorem\Phaster\Test;
 
 use DevTheorem\PeachySQL\PeachySql;
