@@ -17,14 +17,13 @@ class MssqlDbTest extends DbTestCase
     {
         if (!self::$db) {
             $c = App::$config;
-            $server = $c->getSqlsrvServer();
-            $username = '';
-            $password = '';
+            $server = $c->getMssqlServer();
+            $username = $c->getMssqlUsername();
+            $password = $c->getMssqlPassword();
 
-            $pdo = new PDO("sqlsrv:server=$server", $username, $password, [
+            $pdo = new PDO("sqlsrv:Server=$server;Database=PeachySQL", $username, $password, [
                 PDO::ATTR_EMULATE_PREPARES => false,
                 PDO::SQLSRV_ATTR_FETCHES_NUMERIC_TYPE => true,
-                'Database' => 'PeachySQL',
             ]);
 
             self::$db = new PeachySql($pdo);
