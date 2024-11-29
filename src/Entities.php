@@ -10,6 +10,7 @@ abstract class Entities
 {
     /**
      * Returns a map of properties to columns for the current table
+     * @return array<string, mixed>
      */
     abstract protected function getMap(): array;
 
@@ -89,6 +90,9 @@ abstract class Entities
         return new SqlParams($this->getBaseQuery($options), []);
     }
 
+    /**
+     * @return mixed[]
+     */
     protected function getDefaultSort(): array
     {
         return [$this->idField => 'asc'];
@@ -96,6 +100,7 @@ abstract class Entities
 
     /**
      * Can be used to return a separate property map for filtering/sorting (but not inserting/updating)
+     * @return array<string, mixed>
      */
     protected function getSelectMap(): array
     {
@@ -123,6 +128,8 @@ abstract class Entities
 
     /**
      * Can modify the filter or throw an exception if it is invalid
+     * @param mixed[] $filter
+     * @return mixed[]
      */
     protected function processFilter(array $filter): array
     {
@@ -132,7 +139,9 @@ abstract class Entities
     /**
      * Perform any validations/alterations to a set of properties/values to insert/update.
      * When adding entities, default values are merged prior to calling this method.
+     * @param mixed[] $data
      * @param list<string|int> $ids
+     * @return mixed[]
      */
     protected function processValues(array $data, array $ids): array
     {
@@ -282,6 +291,9 @@ abstract class Entities
         return Helpers::mapRows($select->query()->getIterator(), $fieldProps);
     }
 
+    /**
+     * @param mixed[] $filter
+     */
     public function countEntities(array $filter = []): int
     {
         $processedFilter = $this->processFilter($filter);
