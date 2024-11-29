@@ -25,10 +25,12 @@ class Users extends Entities
         ];
     }
 
-    protected function getDefaultValues(): array
+    protected function processValues(array $data, array $ids): array
     {
-        return [
-            'isDisabled' => false,
-        ];
+        if (!$ids && !isset($data['isDisabled'])) {
+            $data['isDisabled'] = false;
+        }
+
+        return $data;
     }
 }

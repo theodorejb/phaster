@@ -118,15 +118,6 @@ abstract class Entities
     }
 
     /**
-     * Allows default values to be specified for mapped properties.
-     * These defaults are only used when adding entities.
-     */
-    protected function getDefaultValues(): array
-    {
-        return [];
-    }
-
-    /**
      * Can modify the filter or throw an exception if it is invalid
      * @param mixed[] $filter
      * @return mixed[]
@@ -207,13 +198,11 @@ abstract class Entities
             return [];
         }
 
-        $defaultValues = $this->getDefaultValues();
         $rows = [];
         $existingIds = [];
 
         foreach ($entities as $key => $entity) {
             unset($entity[$this->idField]); // any ID posted to API should be ignored
-            $entity = array_replace_recursive($defaultValues, $entity);
             $entity = $this->processValues($entity, []);
 
             // if processValues sets an ID for an existing item, don't insert a new row for it
