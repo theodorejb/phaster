@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2025-01-03
+### Changed
+- `getMap()` is no longer abstract and returns an empty array by default,
+so it is no longer necessary to implement for read-only APIs.
+- If the ID column is returned from `getMap()`, it is now automatically writable
+without having to set a `writableId` flag.
+- `getSelectMap()` now returns an empty array by default (rather than the `getMap()` value),
+so it is no longer necessary to implement this method just to prevent selecting write-only
+properties when using `getSelectProps()`.
+
+> [!Important]
+> When upgrading, remove readonly ID properties from `getMap()`, and implement
+> `getSelectMap()` if any writable property is not returned by `getSelectProps()`.
+
+### Removed
+- Unnecessary `getDefaultValues()` method. Defaults can be set via `processValues()` instead.
+- `writableId` bool property.
+
 ## [3.0.0] - 2024-10-29
 ### Added
 - Official support for PostgreSQL.
@@ -187,6 +205,7 @@ return early if passed an empty IDs array.
 - Initial stable release
 
 
+[4.0.0]: https://github.com/devtheorem/phaster/compare/v3.0.0...v4.0.0
 [3.0.0]: https://github.com/devtheorem/phaster/compare/v2.9.0...v3.0.0
 [2.9.0]: https://github.com/devtheorem/phaster/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/devtheorem/phaster/compare/v2.7.0...v2.8.0

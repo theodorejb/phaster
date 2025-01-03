@@ -10,12 +10,16 @@ class Users extends Entities
     protected function getMap(): array
     {
         return [
-            'id' => 'user_id',
             'name' => 'name',
             'birthday' => 'dob',
             'weight' => 'weight',
             'isDisabled' => 'is_disabled',
         ];
+    }
+
+    protected function getSelectMap(): array
+    {
+        return ['id' => 'user_id', ...$this->getMap()];
     }
 
     protected function getSelectProps(): array

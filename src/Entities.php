@@ -8,15 +8,8 @@ use Teapot\{HttpException, StatusCode};
 
 abstract class Entities
 {
-    /**
-     * Returns a map of properties to columns for the current table
-     * @return array<string, mixed>
-     */
-    abstract protected function getMap(): array;
-
     protected PeachySql $db;
     public string $idField = 'id';
-    protected bool $writableId = false;
     private string $idColumn;
     /** @var array<string, Prop> */
     private array $fullPropMap;
@@ -37,25 +30,13 @@ abstract class Entities
         $propMap = Helpers::propListToPropMap([...array_values($bcProps), ...$selectProps]);
 
         if (!isset($propMap[$this->idField])) {
-            throw new \Exception('Missing required id property in map');
+            throw new \Exception("Missing required {$this->idField} property in select map");
         }
 
-        $map = $this->getMap();
-
-        if (isset($map[$this->idField])) {
-            /** @psalm-suppress MixedAssignment */
-            $this->idColumn = $map[$this->idField];
-
-            if (!$this->writableId) {
-                unset($map[$this->idField]); // prevent modifying identity column
-            }
-        } else {
-            $idParts = explode('.', $propMap[$this->idField]->col);
-            $this->idColumn = array_pop($idParts);
-        }
-
+        $idParts = explode('.', $propMap[$this->idField]->col);
+        $this->idColumn = array_pop($idParts);
         $this->fullPropMap = $propMap;
-        $this->map = $map;
+        $this->map = $this->getMap();
     }
 
     /**
@@ -64,6 +45,15 @@ abstract class Entities
     protected function getTableName(): string
     {
         return (new \ReflectionClass($this))->getShortName();
+    }
+
+    /**
+     * Returns a map of properties to writable columns for the current table.
+     * @return array<string, mixed>
+     */
+    protected function getMap(): array
+    {
+        return [];
     }
 
     /**
@@ -99,12 +89,12 @@ abstract class Entities
     }
 
     /**
-     * Can be used to return a separate property map for filtering/sorting (but not inserting/updating)
+     * Returns a map of properties to columns for selecting/filtering/sorting.
      * @return array<string, mixed>
      */
     protected function getSelectMap(): array
     {
-        return $this->getMap();
+        return [];
     }
 
     /**

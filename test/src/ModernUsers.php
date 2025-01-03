@@ -14,7 +14,6 @@ class ModernUsers extends Entities
     protected function getMap(): array
     {
         return [
-            'id' => 'user_id',
             'name' => 'name',
             'birthday' => 'dob',
             'weight' => 'weight',
@@ -31,11 +30,12 @@ class ModernUsers extends Entities
 
         return [
             new Prop('id', 'u.user_id'),
-            new Prop('name', 'name', false, true, 'username'),
-            new Prop('isDisabled', 'is_disabled', false, true, '', 'bool'),
-            new Prop('computed', '', false, true, '', null, false, $getValue, ['weight']),
+            new Prop('name', 'name', alias: 'username'),
+            new Prop('weight', 'weight'),
+            new Prop('isDisabled', 'is_disabled', type: 'bool'),
+            new Prop('computed', getValue: $getValue, dependsOn: ['weight']),
             new Prop('thing.id', 'ut.thing_id', true),
-            new Prop('thing.uid', 'ut.user_id', false, true, 'thing_user'),
+            new Prop('thing.uid', 'ut.user_id', alias: 'thing_user'),
         ];
     }
 
