@@ -11,10 +11,8 @@ Built on top of [PeachySQL](https://github.com/devtheorem/peachy-sql).
 
 ## Usage
 
-Create a class extending `Entities` and implement the `getMap()` method. By default, the table
-name will be inferred from the class name, and all mapped columns in this table will be selected.
-
-To join other tables and alter output values, implement the `getBaseQuery()` and `getSelectProps()` methods.
+Create a class extending `Entities`, and implement the methods to map properties to columns and
+define the base SQL query (see example below).
 Pass the callable returned by the route handling functions to your Slim or other PSR-7 compatible framework.
 
 ```php
@@ -24,9 +22,17 @@ use DevTheorem\Phaster\{Entities, Prop, QueryOptions};
 
 class Users extends Entities
 {
+    // Return the table to insert/update/delete/select from.
+    // If not implemented, the class name will be used as the table name.
+    protected function getTableName(): string
+    {
+        return 'users';
+    }
+
+    // Return an array which maps properties to writable column names. Returns an
+    // empty array by default, so no properties will be writable if not implemented.
     protected function getMap(): array
     {
-        // map properties to columns in Users table
         return [
             'username' => 'uname',
             'firstName' => 'fname',
@@ -38,24 +44,35 @@ class Users extends Entities
         ];
     }
 
+    // Return a list of `Prop` objects, which map properties to readable columns and/or values,
+    // and enable setting a type to cast the column value to, or defining a virtual property
+    // which depends on other columns. See the Prop constructor for the full list of parameters
+    // that can be set. Returns an empty array by default.
     protected function getSelectProps(): array
     {
-        // map additional properties for selecting/filtering and set output options
         return [
             new Prop('id', col: 'u.user_id'),
+            new Prop('username', col: 'u.uname'),
+            new Prop('firstName', col: 'u.fname'),
+            new Prop('lastName', col: 'u.lname'),
             new Prop('isDisabled', col: 'u.disabled', type: 'bool'),
             new Prop('role.id', col: 'u.role_id'),
             new Prop('role.name', col: 'r.role_name'),
         ];
     }
 
+    // Return a SELECT SQL query (without a WHERE clause) in order to join other tables when
+    // selecting data. If not implemented, mapped columns will be selected from the table
+    // returned by getTableName().
     protected function getBaseQuery(QueryOptions $options): string
     {
         return "SELECT {$options->getColumns()}
-                FROM Users u
-                INNER JOIN Roles r ON r.role_id = u.role_id";
+            FROM users u
+            INNER JOIN roles r ON r.role_id = u.role_id";
     }
 
+    // Set the default column/direction for sorting selected results. If not implemented,
+    // results will be sorted by the id property in ascending order by default.
     protected function getDefaultSort(): array
     {
         return ['username' => 'asc'];
@@ -63,7 +80,7 @@ class Users extends Entities
 }
 ```
 
-If it is necessary to bind parameters in the base query, use `getBaseSelect` instead:
+If it is necessary to bind parameters in the base query, use `getBaseSelect()` instead:
 
 ```php
 use DevTheorem\PeachySQL\QueryBuilder\SqlParams;
