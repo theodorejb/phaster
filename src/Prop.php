@@ -17,7 +17,6 @@ class Prop
      * @var string[]
      */
     public readonly array $map;
-    public readonly int $depth;
 
     /**
      * @var string[]
@@ -41,17 +40,17 @@ class Prop
     ) {
         $this->output = $output;
         $this->map = explode('.', $name);
-        $this->depth = count($this->map);
+        $depth = count($this->map);
         $parent = '';
         $parents = [];
 
-        for ($i = 0; $i < $this->depth - 1; $i++) {
+        for ($i = 0; $i < $depth - 1; $i++) {
             $parent .= $this->map[$i] . '.';
             $parents[] = $parent;
         }
         $this->parents = $parents;
 
-        if ($nullGroup && $this->depth < 2) {
+        if ($nullGroup && $depth < 2) {
             throw new \Exception("nullGroup cannot be set on top-level {$name} property");
         }
 

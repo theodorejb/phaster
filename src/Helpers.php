@@ -44,21 +44,26 @@ class Helpers
         $selectMap = [];
 
         foreach ($map as $prop) {
-            $key = $prop->map[0];
-            /** @psalm-suppress EmptyArrayAccess */
-            $_ref = &$selectMap[$key];
-
-            for ($i = 1; $i < $prop->depth; $i++) {
-                $key = $prop->map[$i];
-                /** @psalm-suppress MixedArrayAccess */
-                $_ref = &$_ref[$key];
-            }
-
-            $_ref = $prop->col;
-            unset($_ref); // dereference
+            self::setNestedValue($selectMap, $prop->map, $prop->col);
         }
 
         return $selectMap;
+    }
+
+    /**
+     * @param array<string, mixed> $arr
+     * @param string[] $path
+     * @psalm-suppress UnusedParam
+     */
+    private static function setNestedValue(array &$arr, array $path, mixed $value): void
+    {
+        $_arr = &$arr;
+
+        foreach ($path as $key) {
+            $_arr = &$_arr[$key];
+        }
+
+        $_arr = $value;
     }
 
     /**
@@ -111,34 +116,12 @@ class Helpers
                     continue;
                 }
 
-                $key = $prop->map[0];
-                /** @psalm-suppress EmptyArrayAccess */
-                $_ref = &$entity[$key];
-
-                for ($i = 1; $i < $prop->depth; $i++) {
-                    $key = $prop->map[$i];
-                    /** @psalm-suppress MixedArrayAccess */
-                    $_ref = &$_ref[$key];
-                }
-
-                $_ref = $value;
-                unset($_ref); // dereference
+                self::setNestedValue($entity, $prop->map, $value);
             }
 
             foreach ($nullParents as $prop) {
-                $depth = $prop->depth - 1;
-                $key = $prop->map[0];
-                /** @psalm-suppress EmptyArrayAccess */
-                $_ref = &$entity[$key];
-
-                for ($i = 1; $i < $depth; $i++) {
-                    $key = $prop->map[$i];
-                    /** @psalm-suppress MixedArrayAccess */
-                    $_ref = &$_ref[$key];
-                }
-
-                $_ref = null;
-                unset($_ref); // dereference
+                $path = array_slice($prop->map, 0, -1);
+                self::setNestedValue($entity, $path, null);
             }
 
             $entities[] = $entity;
