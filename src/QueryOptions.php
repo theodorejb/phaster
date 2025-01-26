@@ -8,6 +8,9 @@ namespace DevTheorem\Phaster;
 class QueryOptions
 {
     /**
+     * @param mixed[] $filter
+     * @param mixed[] $originalFilter
+     * @param mixed[] $sort
      * @param Prop[] $fieldProps
      */
     public function __construct(

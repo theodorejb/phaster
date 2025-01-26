@@ -8,6 +8,7 @@ use Teapot\HttpException;
 
 class EntitiesTest extends TestCase
 {
+    /** @var array<string, mixed> */
     private array $propertyMap = [
         'name' => 'UserName',
         'client' => [

@@ -33,6 +33,9 @@ class RouteHandler
                 'limit' => $defaultLimit,
             ];
 
+            /**
+             * @var mixed[]|string $value
+             */
             foreach ($request->getQueryParams() as $param => $value) {
                 if (!array_key_exists($param, $params)) {
                     throw new HttpException("Unrecognized parameter '{$param}'", StatusCode::BAD_REQUEST);
@@ -94,7 +97,7 @@ class RouteHandler
                 $output = ['data' => $entities];
             }
 
-            $response->getBody()->write(json_encode($output));
+            $response->getBody()->write(json_encode($output, JSON_THROW_ON_ERROR));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
@@ -123,7 +126,7 @@ class RouteHandler
             $instance = $factory->createEntities($class);
             $count = $instance->countEntities($query);
 
-            $response->getBody()->write(json_encode(['count' => $count]));
+            $response->getBody()->write(json_encode(['count' => $count], JSON_THROW_ON_ERROR));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
@@ -145,7 +148,8 @@ class RouteHandler
             /** @var array<string, string> $params */
             $params = $request->getQueryParams();
             $fields = isset($params['fields']) ? explode(',', $params['fields']) : [];
-            $response->getBody()->write(json_encode(['data' => $instance->getEntityById($args['id'], $fields)]));
+            $entity = $instance->getEntityById($args['id'], $fields);
+            $response->getBody()->write(json_encode(['data' => $entity], JSON_THROW_ON_ERROR));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
@@ -175,7 +179,7 @@ class RouteHandler
                 $body = ['id' => $ids[0] ?? $data[$instance->idField]];
             }
 
-            $response->getBody()->write(json_encode($body));
+            $response->getBody()->write(json_encode($body, JSON_THROW_ON_ERROR));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
@@ -200,7 +204,7 @@ class RouteHandler
             }
 
             $affected = $instance->updateById($args['id'], $body);
-            $response->getBody()->write(json_encode(['affected' => $affected]));
+            $response->getBody()->write(json_encode(['affected' => $affected], JSON_THROW_ON_ERROR));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }
@@ -225,7 +229,7 @@ class RouteHandler
             }
 
             $affected = $instance->patchByIds(explode(',', $args['id']), $body);
-            $response->getBody()->write(json_encode(['affected' => $affected]));
+            $response->getBody()->write(json_encode(['affected' => $affected], JSON_THROW_ON_ERROR));
             return $response->withHeader('Content-Type', 'application/json');
         };
     }

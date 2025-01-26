@@ -46,7 +46,6 @@ class LegacyUsers extends Entities
 
         if (isset($originalFilter['customFilter'])) {
             $customFilter = 'WHERE u1.user_id <> ?';
-            /** @psalm-suppress MixedAssignment */
             $params[] = $originalFilter['customFilter'];
         }
 

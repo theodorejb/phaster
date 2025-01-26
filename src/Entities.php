@@ -13,6 +13,7 @@ abstract class Entities
     private string $idColumn;
     /** @var array<string, Prop> */
     private array $fullPropMap;
+    /** @var array<string, mixed> */
     private array $map;
 
     public function __construct(PeachySql $db)
@@ -34,7 +35,7 @@ abstract class Entities
         }
 
         $idParts = explode('.', $propMap[$this->idField]->col);
-        $this->idColumn = array_pop($idParts);
+        $this->idColumn = $idParts[array_key_last($idParts)];
         $this->fullPropMap = $propMap;
         $this->map = $this->getMap();
     }
@@ -152,6 +153,9 @@ abstract class Entities
         return $this->db->deleteFrom($this->getTableName(), [$this->idColumn => $ids]);
     }
 
+    /**
+     * @param mixed[] $data
+     */
     public function updateById(int|string $id, array $data): int
     {
         $row = Helpers::allPropertiesToColumns($this->map, $this->processValues($data, [$id]));
@@ -163,6 +167,7 @@ abstract class Entities
     /**
      * Update one or more rows via a JSON Merge Patch (https://tools.ietf.org/html/rfc7396)
      * @param list<string|int> $ids
+     * @param mixed[] $mergePatch
      */
     public function patchByIds(array $ids, array $mergePatch): int
     {
@@ -212,11 +217,13 @@ abstract class Entities
         foreach ($existingIds as $offset => $id) {
             array_splice($ids, $offset, 0, [$id]);
         }
+        /** @phpstan-ignore return.type */
         return $ids;
     }
 
     /**
      * @param string[] $fields
+     * @return mixed[]
      */
     public function getEntityById(int|string $id, array $fields = []): array
     {
@@ -230,7 +237,9 @@ abstract class Entities
     }
 
     /**
+     * @param list<int|string> $ids
      * @param string[] $fields
+     * @param mixed[] $sort
      * @return list<array>
      */
     public function getEntitiesByIds(array $ids, array $fields = [], array $sort = []): array
@@ -243,7 +252,9 @@ abstract class Entities
     }
 
     /**
+     * @param mixed[] $filter
      * @param string[] $fields
+     * @param mixed[] $sort
      * @return list<array>
      */
     public function getEntities(array $filter = [], array $fields = [], array $sort = [], int $offset = 0, int $limit = 0): array
@@ -258,8 +269,8 @@ abstract class Entities
         $fieldProps = Helpers::getFieldPropMap($fields, $this->fullPropMap);
         $queryOptions = new QueryOptions($processedFilter, $filter, $sort, $fieldProps);
 
-        /** @psalm-suppress MixedArgumentTypeCoercion */
         $select = $this->db->select($this->getBaseSelect($queryOptions))
+            /** @phpstan-ignore argument.type */
             ->where(self::propertiesToColumns($selectMap, $processedFilter))
             ->orderBy(self::propertiesToColumns($selectMap, $sort, complexValues: false));
 
@@ -281,8 +292,8 @@ abstract class Entities
         $prop = new Prop('count', 'COUNT(*)', false, true, 'count');
         $queryOptions = new QueryOptions($processedFilter, $filter, [], [$prop]);
 
-        /** @psalm-suppress MixedArgumentTypeCoercion */
         $select = $this->db->select($this->getBaseSelect($queryOptions))
+            /** @phpstan-ignore argument.type */
             ->where(self::propertiesToColumns($selectMap, $processedFilter));
 
         /** @var array{count: int} $row */
@@ -293,6 +304,8 @@ abstract class Entities
 
     /**
      * Converts nested properties to an array of columns and values using a map.
+     * @param array<string, mixed> $map
+     * @param mixed[] $properties
      * @return array<string, mixed>
      */
     public static function propertiesToColumns(

@@ -10,6 +10,7 @@ use Teapot\{HttpException, StatusCode};
 class Helpers
 {
     /**
+     * @param array<string, mixed> $map
      * @return array<string, Prop>
      */
     public static function selectMapToPropMap(array $map, string $context = ''): array
@@ -21,7 +22,7 @@ class Helpers
         }
 
         /**
-         * @var string|array $val
+         * @var string|array<string, mixed> $val
          */
         foreach ($map as $key => $val) {
             $newKey = $context . $key;
@@ -38,6 +39,7 @@ class Helpers
 
     /**
      * @param Prop[] $map
+     * @return array<string, mixed>
      */
     public static function propMapToSelectMap(array $map): array
     {
@@ -53,13 +55,13 @@ class Helpers
     /**
      * @param array<string, mixed> $arr
      * @param string[] $path
-     * @psalm-suppress UnusedParam
      */
     private static function setNestedValue(array &$arr, array $path, mixed $value): void
     {
         $_arr = &$arr;
 
         foreach ($path as $key) {
+            /** @phpstan-ignore offsetAccess.nonOffsetAccessible */
             $_arr = &$_arr[$key];
         }
 
@@ -67,7 +69,7 @@ class Helpers
     }
 
     /**
-     * @param \Generator<int, array> $rows
+     * @param \Generator<int, mixed[]> $rows
      * @param Prop[] $fieldProps
      * @return list<array>
      */
@@ -87,10 +89,8 @@ class Helpers
 
             foreach ($aliasMap as $colName => $prop) {
                 if ($prop->getValue !== null) {
-                    /** @psalm-suppress MixedAssignment */
                     $value = ($prop->getValue)($row);
                 } else {
-                    /** @psalm-suppress MixedAssignment */
                     $value = $row[$colName];
 
                     if ($prop->type !== null) {
@@ -192,7 +192,7 @@ class Helpers
                 if ($data->nullGroup) {
                     // check if any selected field is a child
                     $parents = $data->parents;
-                    $parent = array_pop($parents);
+                    $parent = $parents[array_key_last($parents)];
                     $length = strlen($parent);
 
                     foreach ($fieldProps as $field => $_val) {
@@ -266,7 +266,10 @@ class Helpers
     }
 
     /**
-     * Converts nested properties to an array of columns and values using a map. All properties in the map are required.
+     * Converts nested properties to an array of columns and values using a map.
+     * All properties in the map are required.
+     * @param array<string, mixed> $map
+     * @param mixed[] $properties
      * @return array<string, mixed>
      */
     public static function allPropertiesToColumns(array $map, array $properties): array
@@ -277,6 +280,8 @@ class Helpers
     }
 
     /**
+     * @param mixed[] $map
+     * @param mixed[] $properties
      * @param array<string, mixed> $columns
      * @return array<string, mixed>
      */
@@ -305,7 +310,7 @@ class Helpers
                 throw new HttpException("{$errMsg} {$contextProp} property", StatusCode::BAD_REQUEST);
             }
 
-            /** @var array|mixed $newMap */
+            /** @var array<string, mixed>|scalar|null|object $newMap */
             $newMap = $map[$property]; // might be value
 
             if (is_array($newMap)) {
@@ -338,7 +343,6 @@ class Helpers
                     throw new HttpException($msg, StatusCode::BAD_REQUEST);
                 }
 
-                /** @psalm-suppress MixedAssignment */
                 $columns[$newMap] = $value;
             }
         }

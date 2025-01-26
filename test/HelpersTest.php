@@ -8,6 +8,7 @@ use Teapot\HttpException;
 
 class HelpersTest extends TestCase
 {
+    /** @var array<string, mixed> */
     private array $propertyMap = [
         'name' => 'UserName',
         'client' => [
@@ -54,7 +55,7 @@ class HelpersTest extends TestCase
 
     public function testMapRows(): void
     {
-        /** @psalm-suppress MixedInferredReturnType, MixedReturnStatement */
+        /** @phpstan-ignore return.type */
         $usernameMapper = fn(array $row): string => ($row['UserID'] === 1) ? 'testUser' : $row['UserName'];
 
         $props = [
