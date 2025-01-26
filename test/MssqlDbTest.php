@@ -17,9 +17,9 @@ class MssqlDbTest extends DbTestCase
     {
         if (!self::$db) {
             $c = App::$config;
-            $server = $c->getMssqlServer();
-            $username = $c->getMssqlUsername();
-            $password = $c->getMssqlPassword();
+            $server = $c->mssqlServer;
+            $username = $c->mssqlUsername;
+            $password = $c->mssqlPassword;
 
             $pdo = new PDO("sqlsrv:Server=$server;Database=PeachySQL", $username, $password, [
                 PDO::ATTR_EMULATE_PREPARES => false,

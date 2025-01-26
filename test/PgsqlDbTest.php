@@ -19,7 +19,7 @@ class PgsqlDbTest extends DbTestCase
             $c = App::$config;
             $dbName = getenv('POSTGRES_HOST') !== false ? 'postgres' : 'PeachySQL';
 
-            $pdo = new PDO($c->getPgsqlDsn($dbName), $c->getPgsqlUser(), $c->getPgsqlPassword(), [
+            $pdo = new PDO($c->getPgsqlDsn($dbName), $c->pgsqlUser, $c->pgsqlPassword, [
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
 
